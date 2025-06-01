@@ -232,8 +232,8 @@ namespace st10439147_PROG6221_POE_P3
 
             // Add message text
             var messageText = new TextBlock
-            {
-                Text = message,
+                {
+                    Text = message,
                 Foreground = isUser ?
                     new SolidColorBrush(Color.FromRgb(255, 255, 255)) :
                     new SolidColorBrush(Color.FromRgb(220, 255, 220)),
@@ -300,7 +300,7 @@ namespace st10439147_PROG6221_POE_P3
 
             // Add blinking animation
             var blink = new DoubleAnimation(0.3, 1, TimeSpan.FromMilliseconds(800))
-            {
+        {
                 RepeatBehavior = RepeatBehavior.Forever,
                 AutoReverse = true
             };
@@ -317,8 +317,8 @@ namespace st10439147_PROG6221_POE_P3
             if (typingIndicator != null)
             {
                 ChatPanel.Children.Remove(typingIndicator);
-            }
-        }
+    }
+}
 
         private void UserInput_KeyDown(object sender, KeyEventArgs e)
         {
