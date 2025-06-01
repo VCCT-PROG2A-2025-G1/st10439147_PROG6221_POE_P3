@@ -26,13 +26,32 @@ namespace st10439147_PROG6221_POE_P3
     {
         private Communication _communication;
         private EnhancedResponses _responseGenerator;
-        private bool _isWaitingForName = true;
+        private string _currentUserName;
 
-        public MainWindow()
+        public MainWindow() : this(string.Empty)
+        {
+            // This calls the existing constructor with an empty string as the username.
+        }
+
+        // Constructor that accepts username from NextPage
+        public MainWindow(string userName = "")
         {
             InitializeComponent();
+            _currentUserName = userName;
             InitializeCybersecurityTheme();
             InitializeCommunication();
+        }
+
+        // Alternative method to set username after MainWindow creation
+        public void SetUserName(string userName)
+        {
+            _currentUserName = userName;
+            if (_communication != null)
+            {
+                _communication.SetCurrentUser(userName);
+                // Show personalized welcome message
+                AddChatBubble(_communication.GetWelcomeMessage(), false);
+            }
         }
 
         private void InitializeCybersecurityTheme()
@@ -48,11 +67,17 @@ namespace st10439147_PROG6221_POE_P3
         private void InitializeCommunication()
         {
             UserMemory _memory = new UserMemory();
-            // Initialize the response generator (you'll need to create this class)
+            // Initialize the response generator
             _responseGenerator = new EnhancedResponses(_memory);
 
             // Initialize communication system
             _communication = new Communication(_responseGenerator);
+
+            // Set the current user if we have a username
+            if (!string.IsNullOrEmpty(_currentUserName))
+            {
+                _communication.SetCurrentUser(_currentUserName);
+            }
 
             // Subscribe to communication events
             _communication.OnErrorMessage += HandleErrorMessage;
@@ -61,8 +86,15 @@ namespace st10439147_PROG6221_POE_P3
             _communication.OnExitMessage += HandleExitMessage;
             _communication.OnHelpMessage += HandleHelpMessage;
 
-            // Show initial welcome message
-            AddChatBubble(_communication.GetInitialWelcomeMessage(), false);
+            // Show appropriate welcome message
+            if (!string.IsNullOrEmpty(_currentUserName))
+            {
+                AddChatBubble(_communication.GetWelcomeMessage(), false);
+            }
+            else
+            {
+                AddChatBubble(_communication.GetInitialWelcomeMessage(), false);
+            }
         }
 
         private void CreateTypingIndicator()
@@ -99,23 +131,9 @@ namespace st10439147_PROG6221_POE_P3
 
         private void ProcessUserInput(string userInput)
         {
-            if (_isWaitingForName && !_communication.IsUserNameSet)
-            {
-                // User is setting their name
-                bool nameSet = _communication.SetUserName(userInput);
-                if (nameSet)
-                {
-                    _isWaitingForName = false;
-                    // Welcome message will be handled by the event
-                }
-                // Error message will be handled by the event if name is invalid
-            }
-            else
-            {
-                // Process regular chat input
-                var response = _communication.ProcessInput(userInput);
-                HandleChatResponse(response);
-            }
+            // Since username is now handled in NextPage, we always process as regular chat input
+            var response = _communication.ProcessInput(userInput);
+            HandleChatResponse(response);
         }
 
         private void HandleChatResponse(ChatResponse response)
@@ -130,7 +148,8 @@ namespace st10439147_PROG6221_POE_P3
                     break;
                 case ChatResponseType.Exit:
                     AddChatBubble($"👋 {response.Message}", false);
-                    // Optionally close the application or disable input
+                    // Optionally show exit animation and close application
+                    HandleApplicationExit();
                     break;
                 case ChatResponseType.Error:
                     AddChatBubble($"⚠️ {response.Message}", false);
@@ -139,6 +158,33 @@ namespace st10439147_PROG6221_POE_P3
                     AddChatBubble($"🎉 {response.Message}", false);
                     break;
             }
+        }
+
+        private void HandleApplicationExit()
+        {
+            // Add a delay before closing the application
+            var timer = new System.Windows.Threading.DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(2);
+            timer.Tick += (s, args) =>
+            {
+                timer.Stop();
+
+                // Create fade out animation
+                var fadeOut = new DoubleAnimation
+                {
+                    From = 1,
+                    To = 0,
+                    Duration = TimeSpan.FromSeconds(0.5)
+                };
+
+                fadeOut.Completed += (s2, args2) =>
+                {
+                    Application.Current.Shutdown();
+                };
+
+                this.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+            };
+            timer.Start();
         }
 
         // Event handlers for Communication class events
@@ -220,7 +266,7 @@ namespace st10439147_PROG6221_POE_P3
             // Add sender indicator
             var senderLabel = new TextBlock
             {
-                Text = isUser ? "YOU" : "CYBERGUARD AI",
+                Text = isUser ? (!string.IsNullOrEmpty(_currentUserName) ? _currentUserName.ToUpper() : "YOU") : "CYBERGUARD AI",
                 FontSize = 9,
                 FontWeight = FontWeights.Bold,
                 Foreground = isUser ?

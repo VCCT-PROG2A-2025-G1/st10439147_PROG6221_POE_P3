@@ -13,5 +13,23 @@ namespace st10439147_PROG6221_POE_P3
     /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            // Show welcome window first
+            if (WelcomePage.ShowWelcome())
+            {
+                // User clicked Enter - proceed to main app
+                MainWindow mainWindow = new MainWindow();
+                mainWindow.Show();
+            }
+            else
+            {
+                // User closed welcome window - exit app
+                Shutdown();
+            }
+
+            base.OnStartup(e);
+        }
     }
+
 }
