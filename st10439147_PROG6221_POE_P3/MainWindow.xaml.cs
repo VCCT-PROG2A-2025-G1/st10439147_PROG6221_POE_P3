@@ -1,6 +1,6 @@
 ﻿using ST10439147_PROG6221_POE.MyClasses;
-using ST10439147_PROG6221_POE_P2.MyClasses;
 using ST10439147_PROG6221_POE_P3.MyClasses;
+using st10439147_PROG6221_POE_P3.MyClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +26,8 @@ namespace st10439147_PROG6221_POE_P3
     {
         private Communication _communication;
         private EnhancedResponses _responseGenerator;
+        private TaskManager _taskManager;
+        private UserMemory _userMemory;
         private string _currentUserName;
 
         public MainWindow() : this(string.Empty)
@@ -66,34 +68,52 @@ namespace st10439147_PROG6221_POE_P3
 
         private void InitializeCommunication()
         {
-            UserMemory _memory = new UserMemory();
-            // Initialize the response generator
-            _responseGenerator = new EnhancedResponses(_memory);
-
-            // Initialize communication system
-            _communication = new Communication(_responseGenerator);
-
-            // Set the current user if we have a username
-            if (!string.IsNullOrEmpty(_currentUserName))
+            try
             {
-                _communication.SetCurrentUser(_currentUserName);
+                // Initialize all required dependencies
+                _userMemory = new UserMemory();
+                _responseGenerator = new EnhancedResponses(_userMemory);
+                _taskManager = new TaskManager(_userMemory); // Pass the required 'userMemory' parameter
+
+                // Initialize communication system with all required parameters
+                _communication = new Communication(_responseGenerator, _taskManager, _userMemory);
+
+                // Set the current user if we have a username
+                if (!string.IsNullOrEmpty(_currentUserName))
+                {
+                    _communication.SetCurrentUser(_currentUserName);
+                }
+
+                // Subscribe to communication events
+                _communication.OnErrorMessage += HandleErrorMessage;
+                _communication.OnBotResponse += HandleBotResponse;
+                _communication.OnWelcomeMessage += HandleWelcomeMessage;
+                _communication.OnExitMessage += HandleExitMessage;
+                _communication.OnHelpMessage += HandleHelpMessage;
+                _communication.OnTaskResponse += HandleTaskResponse;
+
+                // Subscribe to task-related events
+                _communication.OnTaskCreated += HandleTaskCreated;
+                _communication.OnTaskUpdated += HandleTaskUpdated;
+                _communication.OnTasksListed += HandleTasksListed;
+
+                // Show appropriate welcome message
+                if (!string.IsNullOrEmpty(_currentUserName))
+                {
+                    AddChatBubble(_communication.GetWelcomeMessage(), false);
+                }
+                else
+                {
+                    AddChatBubble(_communication.GetWelcomeMessage(), false);
+                }
             }
-
-            // Subscribe to communication events
-            _communication.OnErrorMessage += HandleErrorMessage;
-            _communication.OnBotResponse += HandleBotResponse;
-            _communication.OnWelcomeMessage += HandleWelcomeMessage;
-            _communication.OnExitMessage += HandleExitMessage;
-            _communication.OnHelpMessage += HandleHelpMessage;
-
-            // Show appropriate welcome message
-            if (!string.IsNullOrEmpty(_currentUserName))
+            catch (Exception ex)
             {
-                AddChatBubble(_communication.GetWelcomeMessage(), false);
-            }
-            else
-            {
-                AddChatBubble(_communication.GetInitialWelcomeMessage(), false);
+                // Handle initialization errors
+                MessageBox.Show($"Error initializing communication system: {ex.Message}",
+                               "Initialization Error",
+                               MessageBoxButton.OK,
+                               MessageBoxImage.Error);
             }
         }
 
@@ -131,9 +151,18 @@ namespace st10439147_PROG6221_POE_P3
 
         private void ProcessUserInput(string userInput)
         {
-            // Since username is now handled in NextPage, we always process as regular chat input
-            var response = _communication.ProcessInput(userInput);
-            HandleChatResponse(response);
+            try
+            {
+                // Process the input using the Communication class
+                var response = _communication.ProcessInput(userInput);
+                HandleChatResponse(response);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new ChatResponse(ChatResponseType.Error,
+                    $"Error processing your input: {ex.Message}");
+                HandleChatResponse(errorResponse);
+            }
         }
 
         private void HandleChatResponse(ChatResponse response)
@@ -156,6 +185,12 @@ namespace st10439147_PROG6221_POE_P3
                     break;
                 case ChatResponseType.Welcome:
                     AddChatBubble($"🎉 {response.Message}", false);
+                    break;
+                case ChatResponseType.Task:
+                    AddChatBubble($"📋 {response.Message}", false);
+                    break;
+                default:
+                    AddChatBubble(response.Message, false);
                     break;
             }
         }
@@ -187,7 +222,8 @@ namespace st10439147_PROG6221_POE_P3
             timer.Start();
         }
 
-        // Event handlers for Communication class events
+        #region Event Handlers for Communication Class Events
+
         private void HandleErrorMessage(string message)
         {
             AddChatBubble($"⚠️ {message}", false);
@@ -212,6 +248,36 @@ namespace st10439147_PROG6221_POE_P3
         {
             AddChatBubble($"ℹ️ {message}", false);
         }
+
+        private void HandleTaskResponse(string message)
+        {
+            AddChatBubble($"📋 {message}", false);
+        }
+
+        #endregion
+
+        #region Task Event Handlers
+
+        private void HandleTaskCreated(st10439147_PROG6221_POE_P3.MyClasses.Task task)
+        {
+            // Optional: Show a special notification for task creation
+            AddChatBubble($"✅ New task created: {task.Title}", false);
+        }
+
+        private void HandleTaskUpdated(st10439147_PROG6221_POE_P3.MyClasses.Task task)
+        {
+            // Optional: Show a special notification for task updates
+            AddChatBubble($"🔄 Task updated: {task.Title} - Status: {task.Status}", false);
+        }
+
+        private void HandleTasksListed(List<st10439147_PROG6221_POE_P3.MyClasses.Task> tasks)
+        {
+            // Optional: Handle the task list display
+            // The Communication class already formats the response, so this might be redundant
+            // But you could add special UI handling here if needed
+        }
+
+        #endregion
 
         private void AddChatBubble(string message, bool isUser)
         {
@@ -371,6 +437,55 @@ namespace st10439147_PROG6221_POE_P3
             if (e.Key == Key.Enter)
             {
                 SendButton_Click(sender, e);
+            }
+        }
+
+        #region Additional Helper Methods
+
+        /// <summary>
+        /// Method to show task statistics - can be called from menu or button
+        /// </summary>
+        private void ShowTaskStatistics()
+        {
+            if (_communication != null)
+            {
+                try
+                {
+                    string stats = _communication.GetTaskStatistics();
+                    AddChatBubble(stats, false);
+                }
+                catch (Exception ex)
+                {
+                    AddChatBubble($"Error retrieving task statistics: {ex.Message}", false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Method to refresh the chat interface
+        /// </summary>
+        private void RefreshChat()
+        {
+            ChatPanel.Children.Clear();
+            if (_communication != null)
+            {
+                AddChatBubble(_communication.GetWelcomeMessage(), false);
+            }
+        }
+
+        #endregion
+
+        private void ShowTaskStatistics(object sender, RoutedEventArgs e)
+        {
+            // Add your logic for showing task statistics here
+        }
+
+        private void RefreshChat(object sender, RoutedEventArgs e)
+        {
+            ChatPanel.Children.Clear();
+            if (_communication != null)
+            {
+                AddChatBubble(_communication.GetWelcomeMessage(), false);
             }
         }
     }

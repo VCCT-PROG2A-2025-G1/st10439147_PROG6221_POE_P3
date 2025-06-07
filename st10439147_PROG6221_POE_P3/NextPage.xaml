@@ -134,44 +134,7 @@
                            HorizontalAlignment="Center"
                            Margin="0,20,0,0">
 
-                    <!-- Back Button -->
-                    <Button Name="BackButton"
-                        Content="Back"
-                        Width="100"
-                        Height="40"
-                        FontSize="14"
-                        FontWeight="SemiBold"
-                        Margin="0,0,20,0"
-                        Background="#FF585B70"
-                        Foreground="#FFCDD6F4"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        Click="BackButton_Click">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                               CornerRadius="8">
-                                                <ContentPresenter HorizontalAlignment="Center"
-                                                            VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#FF6C7086"/>
-                                    </Trigger>
-                                    <Trigger Property="IsPressed" Value="True">
-                                        <Setter Property="Background" Value="#FF45475A"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-
+                    
                     <!-- Continue Button -->
                     <Button Name="ContinueButton"
                         Content="Continue"

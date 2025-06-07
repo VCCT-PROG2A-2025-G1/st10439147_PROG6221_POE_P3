@@ -17,6 +17,9 @@ namespace st10439147_PROG6221_POE_P3
         // Add UserMemory instance
         private UserMemory _userMemory;
 
+        // Add this field to your class
+        private bool _isModal = false;
+
         // Constructor that accepts UserMemory instance
         public NextPage(UserMemory userMemory = null)
         {
@@ -53,11 +56,20 @@ namespace st10439147_PROG6221_POE_P3
         }
 
         // Updated static method to accept UserMemory
-        public static bool ShowNextPage(UserMemory userMemory = null)
+        public static bool ShowNextPageAsDialog(UserMemory userMemory = null)
         {
             var nextPage = new NextPage(userMemory);
-            var result = nextPage.ShowDialog(); // Show it modally
+            nextPage._isModal = true;
+            var result = nextPage.ShowDialog(); // ShowDialog() - this allows DialogResult
             return result == true;
+        }
+
+        public static NextPage ShowNextPageAsWindow(UserMemory userMemory = null)
+        {
+            var nextPage = new NextPage(userMemory);
+            nextPage._isModal = false;
+            nextPage.Show(); // Show() - don't set DialogResult for regular windows
+            return nextPage;
         }
 
         // Method to get the UserMemory instance (useful for passing to MainWindow)
@@ -157,29 +169,9 @@ namespace st10439147_PROG6221_POE_P3
             }
         }
 
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Create exit animation before going back
-            var fadeOut = new DoubleAnimation
-            {
-                From = 1,
-                To = 0,
-                Duration = TimeSpan.FromSeconds(0.3)
-            };
-
-            fadeOut.Completed += (s, args) =>
-            {
-                // Simply close this window - it will return to the previous window
-                this.DialogResult = false; // Set dialog result to indicate user went back
-                this.Close();
-            };
-
-            this.BeginAnimation(UIElement.OpacityProperty, fadeOut);
-        }
 
         private void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
-            // Check if NameTextBox exists
             if (NameTextBox == null)
             {
                 MessageBox.Show("Name input field not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -207,20 +199,35 @@ namespace st10439147_PROG6221_POE_P3
             {
                 try
                 {
-                    // Pass the UserMemory instance to MainWindow
+                    // Create and configure MainWindow
                     MainWindow mainWindow = new MainWindow();
-                    mainWindow.SetUserName(UserName); // Use the SetUserName method
+                    mainWindow.SetUserName(UserName);
+
+                    // Set as application main window
                     Application.Current.MainWindow = mainWindow;
 
-                    // Hide current window first
-                    this.Hide();
-
-                    // Show main window
-                    Application.Current.MainWindow = mainWindow;
+                    // Show the main window
                     mainWindow.Show();
 
-                    this.DialogResult = true; // Important for ShowDialog() to return true
-                    this.Close();
+                    // FIXED: Check if we can set DialogResult before trying to set it
+                    try
+                    {
+                        // Only set DialogResult if this window was opened with ShowDialog()
+                        if (_isModal)
+                        {
+                            this.DialogResult = true;
+                        }
+                        else
+                        {
+                            // If not modal, just close normally
+                            this.Close();
+                        }
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // If we can't set DialogResult, just close the window
+                        this.Close();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -273,7 +280,6 @@ namespace st10439147_PROG6221_POE_P3
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            // Show confirmation dialog
             var result = MessageBox.Show(
                 "Are you sure you want to exit?",
                 "Confirm Exit",
@@ -282,7 +288,6 @@ namespace st10439147_PROG6221_POE_P3
 
             if (result == MessageBoxResult.Yes)
             {
-                // Create exit animation
                 var fadeOut = new DoubleAnimation
                 {
                     From = 1,
@@ -292,8 +297,31 @@ namespace st10439147_PROG6221_POE_P3
 
                 fadeOut.Completed += (s, args) =>
                 {
-                    this.DialogResult = false; // Set dialog result before closing
-                    this.Close();
+                    // FIXED: Check if we can set DialogResult before trying to set it
+                    try
+                    {
+                        // Check if this is a modal dialog
+                        if (_isModal)
+                        {
+                            this.DialogResult = false; // Only set if modal
+                        }
+                        else
+                        {
+                            Application.Current.Shutdown(); // Close entire app if this is the main window
+                        }
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // If we can't set DialogResult, just close/shutdown appropriately
+                        if (_isModal)
+                        {
+                            this.Close();
+                        }
+                        else
+                        {
+                            Application.Current.Shutdown();
+                        }
+                    }
                 };
                 this.BeginAnimation(UIElement.OpacityProperty, fadeOut);
             }

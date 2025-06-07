@@ -55,6 +55,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="MyClasses\Task.cs" />
+    <Compile Include="MyClasses\TaskManager.cs" />
     <Compile Include="NextPage.xaml.cs">
       <DependentUpon>NextPage.xaml</DependentUpon>
     </Compile>

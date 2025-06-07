@@ -279,11 +279,8 @@ namespace st10439147_PROG6221_POE_P3
             {
                 try
                 {
-                    // Pass the UserMemory instance to NextPage
-                    NextPage nextWindow = new NextPage(_userMemory);
-                    this.Hide();
-
-                    var result = nextWindow.ShowDialog();
+                    // FIXED: Use the static method to properly create NextPage as modal dialog
+                    var result = NextPage.ShowNextPageAsDialog(_userMemory);
 
                     // Set DialogResult based on what happened in NextPage
                     this.DialogResult = result;

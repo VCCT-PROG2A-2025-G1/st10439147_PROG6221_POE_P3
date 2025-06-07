@@ -11,7 +11,7 @@
 //-Stack Overflow https://stackoverflow.com/
 //-Pro C# 10 with .NET 6, Foundational Principles and Practices in Programming, Eleventh Edition by Andrew Troelsen and Phil Japiske
 
-using ST10439147_PROG6221_POE_P2.MyClasses;
+
 using ST10439147_PROG6221_POE_P3.MyClasses;
 using System;
 using System.Collections.Generic;
@@ -896,29 +896,44 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
                 _recentTopics.Clear();
             }
 
-            // Check for greetings with personalized responses
+            // Check for greetings
             string greeting = CheckForPersonalizedGreeting(input);
             if (greeting != null)
             {
                 return greeting;
             }
 
-            // Analyze sentiment and get response
+            // Analyze sentiment
             string sentiment = _sentimentAnalyzer.AnalyzeSentiment(input);
             _userMemory.RecordSentiment(sentiment);
             _lastSentiment = sentiment;
 
             ExtractUserInfo(input);
 
+            // Handle quick responses like "yes" or "no"
+            string trimmedInput = input.ToLower().Trim();
+            if ((trimmedInput == "yes" || trimmedInput == "no") && !string.IsNullOrEmpty(_currentTopic))
+            {
+                string yesNoResponse = GetNextStepResponse(_currentTopic, trimmedInput);
+                _followUpAsked = false;
+                _previousUserInput = input;
+                return yesNoResponse;
+            }
+
             // Get base response from parent class
             string baseResponse = base.GetResponse(input);
 
-            // FIX: Check if the base response is NOT the default "didn't understand" message
             if (baseResponse != "I didn't quite understand that. Could you please rephrase that question.")
             {
                 string detectedTopic = DetectTopic(input);
                 if (!string.IsNullOrEmpty(detectedTopic))
                 {
+                    if (_recentTopics.Count > 0 && _recentTopics[0] == detectedTopic)
+                    {
+                        // Prevent repetitive topic explanation
+                        return $"We just talked about {detectedTopic}. Is there something specific you'd like to dive deeper into?";
+                    }
+
                     _currentTopic = detectedTopic;
                     _userMemory.AddDiscussedTopic(detectedTopic);
 
@@ -936,21 +951,22 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
                     {
                         _userMemory.RecordPositiveTopicInteraction(detectedTopic);
                     }
+
+                    // Add topic transition if the topic changed
+                    if (_recentTopics.Count > 0 && _recentTopics[0] != _currentTopic)
+                    {
+                        string transition = _topicTransitions.ContainsKey(_currentTopic)
+                            ? _topicTransitions[_currentTopic]
+                            : $"Let’s talk a bit more about {_currentTopic}.";
+                        baseResponse = transition + " " + baseResponse;
+                    }
                 }
 
-                // FIX: Apply sentiment adjustments and natural follow-up
+                // Apply sentiment adjustments
                 string sentimentAdjustedResponse = AdjustResponseForSentiment(baseResponse, sentiment);
-                string finalResponse;
 
-                if (_previousUserInput.ToLower().Trim() == "yes" || _previousUserInput.ToLower().Trim() == "no")
-                {
-                    finalResponse = sentimentAdjustedResponse + " " + GetNextStepResponse(_currentTopic, _previousUserInput.ToLower().Trim());
-                    _followUpAsked = false; // reset
-                }
-                else
-                {
-                    finalResponse = EnhanceWithNaturalFollowUp(sentimentAdjustedResponse, _currentTopic, sentiment);
-                }
+                // Handle natural follow-up
+                string finalResponse = EnhanceWithNaturalFollowUp(sentimentAdjustedResponse, _currentTopic, sentiment);
 
                 _previousUserInput = input;
                 return finalResponse;
@@ -961,6 +977,7 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
                 return HandleUnrecognizedInputNaturally(input, sentiment);
             }
         }
+
         //------------------------------------------------------------------------------------------------------------------------------------------------------//
         // this method tracks conversation patterns to improve response quality
         // It counts consecutive questions and updates recent topics for context

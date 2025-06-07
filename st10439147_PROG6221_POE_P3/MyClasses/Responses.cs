@@ -18,7 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ST10439147_PROG6221_POE_P2.MyClasses
+namespace ST10439147_PROG6221_POE_P3.MyClasses
 {
     /// <summary>
     /// The Response class is responsible for generating responses based on user input.
