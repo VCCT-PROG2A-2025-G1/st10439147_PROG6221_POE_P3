@@ -74,9 +74,11 @@ namespace st10439147_PROG6221_POE_P3
                 _userMemory = new UserMemory();
                 _responseGenerator = new EnhancedResponses(_userMemory);
                 _taskManager = new TaskManager(_userMemory); // Pass the required 'userMemory' parameter
+                var quizController = new QuizGameController();
+                var activityLog = new ActivityLog();
 
                 // Initialize communication system with all required parameters
-                _communication = new Communication(_responseGenerator, _taskManager, _userMemory);
+                _communication = new Communication(_responseGenerator, _taskManager, _userMemory, quizController, activityLog);
 
                 // Set the current user if we have a username
                 if (!string.IsNullOrEmpty(_currentUserName))
@@ -154,7 +156,7 @@ namespace st10439147_PROG6221_POE_P3
             try
             {
                 // Process the input using the Communication class
-                var response = _communication.ProcessInput(userInput);
+                var response = _communication.ProcessInputWithReminderHandling(userInput);
                 HandleChatResponse(response);
             }
             catch (Exception ex)

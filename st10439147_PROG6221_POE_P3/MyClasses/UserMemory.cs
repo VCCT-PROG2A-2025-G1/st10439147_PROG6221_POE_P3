@@ -29,6 +29,11 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
         private readonly List<string> _discussedTopics;
         private readonly Queue<string> _sentimentHistory;
 
+        private int _totalQuizzesTaken = 0;
+        private int _totalQuestionsAnswered = 0;
+        private int _totalCorrectAnswers = 0;
+        private double _cumulativeScorePercentage = 0;
+
         // New field to track topic frequency and engagement
         private readonly Dictionary<string, TopicData> _topicEngagement;
 
@@ -444,6 +449,30 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
             }
         }
         //------------------------------------------------------------------------------------------------------------------------------------------------------//
+        public void RecordQuizResult(int correctAnswers, int totalQuestions, double percentage)
+        {
+            if (totalQuestions <= 0) return;
+
+            _totalQuizzesTaken++;
+            _totalQuestionsAnswered += totalQuestions;
+            _totalCorrectAnswers += correctAnswers;
+
+            // Update average percentage
+            _cumulativeScorePercentage = ((_cumulativeScorePercentage * (_totalQuizzesTaken - 1)) + percentage) / _totalQuizzesTaken;
+        }
+
+        public Dictionary<string, object> GetQuizStats()
+        {
+            return new Dictionary<string, object>
+            {
+                { "quizzes_taken", _totalQuizzesTaken },
+                { "questions_answered", _totalQuestionsAnswered },
+                { "correct_answers", _totalCorrectAnswers },
+                { "average_percentage", _cumulativeScorePercentage }
+            };
+        }
+
+        //------------------------------------------------------------------------------------------------------------------------------------------------------//
         public void ClearUserData()
         {
             try
@@ -487,3 +516,4 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
         }
     }
 }
+//----------------------------------------------------------------DDDDDoooooo END OF FILE DDDDDoooooooo----------------------------------------------------------------------------------------------------------//

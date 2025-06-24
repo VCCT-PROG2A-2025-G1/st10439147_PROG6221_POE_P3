@@ -96,6 +96,22 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         }
 
         /// <summary>
+        /// Update task reminder
+        /// </summary>
+        public void UpdateTaskReminder(string taskId, TimeSpan reminderTime)
+        {
+            var task = _tasks.FirstOrDefault(t => t.Id == taskId);
+            if (task == null)
+                throw new ArgumentException($"Task with ID {taskId} not found.");
+
+            task.ReminderTime = reminderTime;
+            task.IsReminder = true;
+
+            // No need to trigger reminder here; it will be caught by timer when due
+            TaskUpdated?.Invoke(this, new TaskEventArgs(task));
+        }
+
+        /// <summary>
         /// Get all tasks
         /// </summary>
         public List<Task> GetAllTasks()
@@ -184,7 +200,8 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
                 {
                     var reminderTime = task.DueDate.Subtract(task.ReminderTime.Value);
 
-                    if (now >= reminderTime && now <= reminderTime.AddMinutes(1))
+                    // Trigger if within the same minute
+                    if (now >= reminderTime && now < reminderTime.AddMinutes(1))
                     {
                         ReminderTriggered?.Invoke(this, new TaskReminderEventArgs(task));
                     }
@@ -192,7 +209,6 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             }
             catch (Exception ex)
             {
-                // Log error but don't crash the timer
                 Console.WriteLine($"Reminder check error: {ex.Message}");
             }
         }
@@ -273,6 +289,12 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             Task = task;
             Message = $"Reminder: {task.Title} is due {task.DueDate:MMM dd, yyyy HH:mm}";
         }
+
+        public TaskReminderEventArgs(Task task, string message)
+        {
+            Task = task;
+            Message = message;
+        }
     }
 
     public enum CybersecurityTaskType
@@ -293,3 +315,4 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
 
 
 }
+//----------------------------------------------------------------DDDDDoooooo END OF FILE DDDDDoooooooo----------------------------------------------------------------------------------------------------------//

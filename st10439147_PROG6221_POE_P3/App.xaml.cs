@@ -19,8 +19,8 @@ namespace st10439147_PROG6221_POE_P3
             if (WelcomePage.ShowWelcome())
             {
                 // User clicked Enter - proceed to main app
-                MainWindow mainWindow = new MainWindow();
-                mainWindow.Show();
+                NextPage NextPage = new NextPage();
+                NextPage.Show();
             }
             else
             {

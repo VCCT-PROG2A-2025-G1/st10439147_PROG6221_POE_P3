@@ -1,0 +1,24 @@
+name: .NET Framework POE CI
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.2.0
+      
+    - name: Restore NuGet Packages
+      run: nuget restore ST10439147_PROG6221_POE_P3.sln
+      
+    - name: Build Solution
+      run: msbuild ST10439147_PROG6221_POE_P3.sln /p:Configuration=Release /m

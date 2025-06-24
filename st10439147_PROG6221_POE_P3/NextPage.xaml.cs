@@ -169,7 +169,6 @@ namespace st10439147_PROG6221_POE_P3
             }
         }
 
-
         private void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
             if (NameTextBox == null)
@@ -188,62 +187,56 @@ namespace st10439147_PROG6221_POE_P3
 
             SaveUserName();
 
-            var fadeOut = new DoubleAnimation
-            {
-                From = 1,
-                To = 0,
-                Duration = TimeSpan.FromSeconds(0.3)
-            };
+            // Create and show MainWindow immediately
+            NavigateToMainWindow();
+        }
 
-            fadeOut.Completed += (s, args) =>
+        private void NavigateToMainWindow()
+        {
+            try
             {
-                try
+                // Create MainWindow with the username
+                MainWindow mainWindow = new MainWindow(UserName);
+
+                // If this is a modal dialog, set DialogResult and close properly
+                if (_isModal)
                 {
-                    // Create and configure MainWindow
-                    MainWindow mainWindow = new MainWindow();
-                    mainWindow.SetUserName(UserName);
-
-                    // Set as application main window
-                    Application.Current.MainWindow = mainWindow;
-
-                    // Show the main window
+                    // Show MainWindow before closing this dialog
                     mainWindow.Show();
 
-                    // FIXED: Check if we can set DialogResult before trying to set it
-                    try
+                    // Set as main application window if needed
+                    if (Application.Current.MainWindow == this)
                     {
-                        // Only set DialogResult if this window was opened with ShowDialog()
-                        if (_isModal)
-                        {
-                            this.DialogResult = true;
-                        }
-                        else
-                        {
-                            // If not modal, just close normally
-                            this.Close();
-                        }
+                        Application.Current.MainWindow = mainWindow;
                     }
-                    catch (InvalidOperationException)
-                    {
-                        // If we can't set DialogResult, just close the window
-                        this.Close();
-                    }
+
+                    // Set DialogResult last to close this dialog
+                    this.DialogResult = true;
                 }
-                catch (Exception ex)
+                else
                 {
-                    MessageBox.Show(
-                        $"Error opening main window: {ex.Message}",
-                        "Navigation Error",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                    // For non-modal windows
+                    // Set as main application window if this was the main window
+                    if (Application.Current.MainWindow == this)
+                    {
+                        Application.Current.MainWindow = mainWindow;
+                    }
 
-                    // Show this window again
-                    this.Show();
-                    this.Opacity = 1.0;
+                    // Show the new window
+                    mainWindow.Show();
+
+                    // Close this window
+                    this.Close();
                 }
-            };
-
-            this.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error opening main window: {ex.Message}",
+                    "Navigation Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
         private void SaveUserName()
@@ -288,42 +281,29 @@ namespace st10439147_PROG6221_POE_P3
 
             if (result == MessageBoxResult.Yes)
             {
-                var fadeOut = new DoubleAnimation
+                try
                 {
-                    From = 1,
-                    To = 0,
-                    Duration = TimeSpan.FromSeconds(0.2)
-                };
-
-                fadeOut.Completed += (s, args) =>
+                    if (_isModal)
+                    {
+                        this.DialogResult = false;
+                    }
+                    else
+                    {
+                        Application.Current.Shutdown();
+                    }
+                }
+                catch (InvalidOperationException)
                 {
-                    // FIXED: Check if we can set DialogResult before trying to set it
-                    try
+                    // If we can't set DialogResult, handle gracefully
+                    if (_isModal)
                     {
-                        // Check if this is a modal dialog
-                        if (_isModal)
-                        {
-                            this.DialogResult = false; // Only set if modal
-                        }
-                        else
-                        {
-                            Application.Current.Shutdown(); // Close entire app if this is the main window
-                        }
+                        this.Close();
                     }
-                    catch (InvalidOperationException)
+                    else
                     {
-                        // If we can't set DialogResult, just close/shutdown appropriately
-                        if (_isModal)
-                        {
-                            this.Close();
-                        }
-                        else
-                        {
-                            Application.Current.Shutdown();
-                        }
+                        Application.Current.Shutdown();
                     }
-                };
-                this.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+                }
             }
         }
 

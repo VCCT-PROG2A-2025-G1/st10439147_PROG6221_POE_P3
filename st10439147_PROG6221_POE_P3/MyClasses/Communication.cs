@@ -16,6 +16,12 @@ namespace ST10439147_PROG6221_POE.MyClasses
         private readonly EnhancedResponses _responseGenerator;
         private readonly TaskManager _taskManager;
         private readonly UserMemory _userMemory;
+        private readonly QuizGameController _quizController;
+        private readonly ActivityLog _activityLog;
+
+
+        private int? _pendingReminderTaskId;
+        private bool _awaitingReminderResponse;
 
         // Username is now passed from external source (NextPage)
         private string _currentUserName;
@@ -34,17 +40,25 @@ namespace ST10439147_PROG6221_POE.MyClasses
         public event Action<Task> OnTaskUpdated;
         public event Action<List<Task>> OnTasksListed;
 
-        public Communication(EnhancedResponses responseGenerator, TaskManager taskManager, UserMemory userMemory)
+        public Communication(EnhancedResponses responseGenerator, TaskManager taskManager, UserMemory userMemory, QuizGameController quizController, ActivityLog activityLog)
         {
             _responseGenerator = responseGenerator ?? throw new ArgumentNullException(nameof(responseGenerator));
             _taskManager = taskManager ?? throw new ArgumentNullException(nameof(taskManager));
             _userMemory = userMemory ?? throw new ArgumentNullException(nameof(userMemory));
+            _quizController = quizController ?? throw new ArgumentNullException(nameof(quizController));
+            _activityLog = activityLog ?? throw new ArgumentNullException(nameof(activityLog));
 
             // Subscribe to task manager events
             _taskManager.TaskAdded += OnTaskManagerTaskAdded;
             _taskManager.TaskUpdated += OnTaskManagerTaskUpdated;
             _taskManager.TaskCompleted += OnTaskManagerTaskCompleted;
             _taskManager.ReminderTriggered += OnTaskManagerReminderTriggered;
+
+            // Subscribe to quiz events
+            _quizController.QuizStarted += OnQuizStarted;
+            _quizController.QuestionAsked += OnQuizQuestionAsked;
+            _quizController.AnswerProvided += OnQuizAnswerProvided;
+            _quizController.QuizCompleted += OnQuizCompleted;
         }
 
         /// <summary>
@@ -81,10 +95,39 @@ namespace ST10439147_PROG6221_POE.MyClasses
             return new ValidationResult(true, string.Empty);
         }
 
+        private void OnQuizStarted(object sender, EventArgs e)
+        {
+            OnBotResponse?.Invoke("🎯 The quiz has started! Get ready!");
+            _activityLog.LogQuizActivity("started", null, _currentUserName);
+        }
+
+        private void OnQuizQuestionAsked(object sender, QuestionAskedEventArgs e)
+        {
+            var options = string.Join("\n", e.Question.GetFormattedOptions());
+            var questionMessage = $"❓ Question {e.QuestionNumber}/{e.TotalQuestions}:\n{e.Question.Question}\n\n{options}";
+            OnBotResponse?.Invoke(questionMessage);
+            _activityLog.LogQuizActivity("question_asked", $"Question {e.QuestionNumber}: {e.Question.Question}", _currentUserName);
+        }
+
+        private void OnQuizAnswerProvided(object sender, AnswerResultEventArgs e)
+        {
+            var result = e.IsCorrect ? "✅ Correct!" : $"❌ Incorrect.\n{e.Feedback}";
+            OnBotResponse?.Invoke($"{result}\n\nScore: {e.CurrentScore}/{e.TotalQuestions}");
+            _activityLog.LogQuizActivity("answer_provided", $"Answer: {(e.IsCorrect ? "Correct" : "Incorrect")}", _currentUserName);
+        }
+
+        private void OnQuizCompleted(object sender, QuizCompletedEventArgs e)
+        {
+            var message = $"🎉 Quiz completed!\nFinal Score: {e.FinalScore}/{e.TotalQuestions} ({e.Percentage:0.0}%)\n{e.PerformanceFeedback}";
+            OnBotResponse?.Invoke(message);
+            _activityLog.LogQuizActivity("completed", $"Score: {e.FinalScore}/{e.TotalQuestions} ({e.Percentage:0.0}%)", _currentUserName);
+        }
+
         /// <summary>
-        /// Processes user input and returns the appropriate response type
+        /// Modified ProcessInput method to handle reminder confirmation
+        /// Add this logic to your existing ProcessInput method after input validation
         /// </summary>
-        public ChatResponse ProcessInput(string input)
+        public ChatResponse ProcessInputWithReminderHandling(string input)
         {
             LastUserInput = input?.Trim() ?? string.Empty;
 
@@ -92,25 +135,201 @@ namespace ST10439147_PROG6221_POE.MyClasses
             var validation = ValidateInput(LastUserInput);
             if (!validation.IsValid)
             {
+                _activityLog.LogChatInteraction(LastUserInput, validation.ErrorMessage, ChatResponseType.Error, _currentUserName);
                 return new ChatResponse(ChatResponseType.Error, validation.ErrorMessage);
             }
 
+            // CHECK FOR REMINDER CONFIRMATION FIRST (before other processing)
+            if (_awaitingReminderResponse)
+            {
+                var reminderResponse = HandleReminderConfirmation(LastUserInput);
+                if (reminderResponse != null)
+                {
+                    _activityLog.LogChatInteraction(LastUserInput, reminderResponse.Message, reminderResponse.Type, _currentUserName);
+                    return reminderResponse;
+                }
+            }
+
+            // Continue with your existing ProcessInput logic...
             string lowerInput = LastUserInput.ToLower();
 
             // Handle exit commands
             if (lowerInput == "exit" || lowerInput == "goodbye" || lowerInput == "bye")
             {
+                // Reset any pending reminder state
+                _awaitingReminderResponse = true;
+                _pendingReminderTaskId = null;
+
                 string exitMessage = !string.IsNullOrEmpty(_currentUserName)
                     ? $"Remember to ask me anything as I am always available.\nGoodbye, have a great day {_currentUserName}!"
                     : "Goodbye, have a great day!";
 
+                _activityLog.LogChatInteraction(LastUserInput, exitMessage, ChatResponseType.Exit, _currentUserName);
                 return new ChatResponse(ChatResponseType.Exit, exitMessage);
+            }
+
+            // Handle quiz commands
+            if (lowerInput.StartsWith("start quiz"))
+            {
+                try
+                {
+                    _quizController.StartQuiz();
+                    var response = "Starting general quiz...";
+                    _activityLog.LogChatInteraction(LastUserInput, response, ChatResponseType.Quiz, _currentUserName);
+                    return new ChatResponse(ChatResponseType.Quiz, response);
+                }
+                catch (Exception ex)
+                {
+                    var errorResponse = $"Failed to start quiz: {ex.Message}";
+                    _activityLog.LogChatInteraction(LastUserInput, errorResponse, ChatResponseType.Error, _currentUserName);
+                    return new ChatResponse(ChatResponseType.Error, errorResponse);
+                }
+            }
+            else if (lowerInput.StartsWith("quiz on "))
+            {
+                try
+                {
+                    var topic = input.Substring("quiz on ".Length).Trim();
+                    _quizController.StartTopicQuiz(topic);
+                    var response = $"Starting quiz on {topic}...";
+                    _activityLog.LogChatInteraction(LastUserInput, response, ChatResponseType.Quiz, _currentUserName);
+                    return new ChatResponse(ChatResponseType.Quiz, response);
+                }
+                catch (Exception ex)
+                {
+                    var errorResponse = $"Failed to start topic quiz: {ex.Message}";
+                    _activityLog.LogChatInteraction(LastUserInput, errorResponse, ChatResponseType.Error, _currentUserName);
+                    return new ChatResponse(ChatResponseType.Error, errorResponse);
+                }
+            }
+
+            // Check if user input is a quiz answer like "A", "B", "C"
+            if (_quizController.IsQuizInProgress && input.Length == 1)
+            {
+                int? selectedIndex = GetAnswerIndexFromLetter(input);
+                if (selectedIndex.HasValue)
+                {
+                    try
+                    {
+                        _quizController.SubmitAnswer(selectedIndex.Value);
+                        var response = "✅ Answer submitted.";
+                        _activityLog.LogChatInteraction(LastUserInput, response, ChatResponseType.Quiz, _currentUserName);
+                        return new ChatResponse(ChatResponseType.Quiz, response);
+                    }
+                    catch (Exception ex)
+                    {
+                        var errorResponse = $"Failed to submit answer: {ex.Message}";
+                        _activityLog.LogChatInteraction(LastUserInput, errorResponse, ChatResponseType.Error, _currentUserName);
+                        return new ChatResponse(ChatResponseType.Error, errorResponse);
+                    }
+                }
+            }
+
+            // Quit quiz
+            if (lowerInput == "quit quiz" || lowerInput == "stop quiz")
+            {
+                if (_quizController.IsQuizInProgress)
+                {
+                    // 🔹 Fetch quiz results before resetting
+                    int correctAnswers = _quizController.CurrentScore;
+                    int totalQuestions = _quizController.TotalQuestions;
+                    double percentage = totalQuestions > 0 ? (correctAnswers / (double)totalQuestions) * 100 : 0;
+
+                    // 🧠 Record in user memory if needed
+                    _userMemory.RecordQuizResult(correctAnswers, totalQuestions, percentage);
+
+                    // 📝 Format score message
+                    string response = $"🛑 Quiz has been stopped.\n" +
+                                      $"📊 Score: {correctAnswers}/{totalQuestions} ({percentage:0.0}%)";
+
+                    // 📓 Log the score as a quiz activity
+                    _activityLog.LogQuizActivity("stopped", $"Score: {correctAnswers}/{totalQuestions} ({percentage:0.0}%)", this.GetCurrentUserName());
+                    _activityLog.LogChatInteraction(LastUserInput, response, ChatResponseType.Quiz, this.GetCurrentUserName());
+
+                    // ❌ Reset the quiz after saving data
+                    _quizController.ResetQuiz();
+                    return new ChatResponse(ChatResponseType.Quiz, response);
+                }
+                else
+                {
+                    var response = "No quiz is currently in progress.";
+                    _activityLog.LogChatInteraction(LastUserInput, response, ChatResponseType.Regular, this.GetCurrentUserName());
+                    return new ChatResponse(ChatResponseType.Regular, response);
+                }
+            }
+
+            // Restart quiz
+            if (lowerInput == "restart quiz")
+            {
+                try
+                {
+                    if (_quizController.IsQuizInProgress)
+                    {
+                        _quizController.ResetQuiz();
+                        _quizController.StartQuiz();
+                        var response = "🔄 Quiz restarted.";
+                        _activityLog.LogChatInteraction(LastUserInput, response, ChatResponseType.Quiz, _currentUserName);
+                        return new ChatResponse(ChatResponseType.Quiz, response);
+                    }
+                    else
+                    {
+                        _quizController.StartQuiz();
+                        var response = "🆕 Starting a new quiz.";
+                        _activityLog.LogChatInteraction(LastUserInput, response, ChatResponseType.Quiz, _currentUserName);
+                        return new ChatResponse(ChatResponseType.Quiz, response);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var errorResponse = $"Failed to restart quiz: {ex.Message}";
+                    _activityLog.LogChatInteraction(LastUserInput, errorResponse, ChatResponseType.Error, _currentUserName);
+                    return new ChatResponse(ChatResponseType.Error, errorResponse);
+                }
+            }
+
+            // Handle quiz history command
+            /* if (lowerInput == "quiz history")
+             {
+                 try
+                 {
+                     var stats = _userMemory.GetQuizStats();
+                     string response = $"📚 QUIZ HISTORY:\n" +
+                                       $"• Quizzes Taken: {stats["quizzes_taken"]}\n" +
+                                       $"• Questions Answered: {stats["questions_answered"]}\n" +
+                                       $"• Correct Answers: {stats["correct_answers"]}\n" +
+                                       $"• Average Score: {stats["average_percentage"]:0.0}%";
+
+                     _activityLog.LogChatInteraction(LastUserInput, response, ChatResponseType.Regular, _currentUserName);
+                     return new ChatResponse(ChatResponseType.Regular, response);
+                 }
+                 catch (Exception ex)
+                 {
+                     var errorResponse = $"Failed to retrieve quiz history: {ex.Message}";
+                     _activityLog.LogChatInteraction(LastUserInput, errorResponse, ChatResponseType.Error, _currentUserName);
+                     return new ChatResponse(ChatResponseType.Error, errorResponse);
+                 }
+             }*/
+
+            // Handle activity log commands
+            if (lowerInput == "show activity" || lowerInput == "activity log" || lowerInput == "What have you done for me?”")
+            {
+                var response = _activityLog.GetConciseActivitySummary(5); // Updated method call
+                _activityLog.LogChatInteraction(LastUserInput, "User-friendly activity summary displayed", ChatResponseType.Regular, _currentUserName);
+                return new ChatResponse(ChatResponseType.Regular, response);
+            }
+
+            if (lowerInput == "show chat history" || lowerInput == "chat history")
+            {
+                var response = _activityLog.GetFormattedChatHistory();
+                _activityLog.LogChatInteraction(LastUserInput, "Chat history displayed", ChatResponseType.Regular, _currentUserName);
+                return new ChatResponse(ChatResponseType.Regular, response);
             }
 
             // Handle help command
             if (lowerInput == "help")
             {
                 string helpMessage = GetHelpMessage();
+                _activityLog.LogChatInteraction(LastUserInput, helpMessage, ChatResponseType.Help, _currentUserName);
                 return new ChatResponse(ChatResponseType.Help, helpMessage);
             }
 
@@ -118,6 +337,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             var taskResponse = ProcessTaskCommand(LastUserInput);
             if (taskResponse != null)
             {
+                _activityLog.LogChatInteraction(LastUserInput, taskResponse.Message, ChatResponseType.Task, _currentUserName);
                 return taskResponse;
             }
 
@@ -125,11 +345,13 @@ namespace ST10439147_PROG6221_POE.MyClasses
             try
             {
                 string response = _responseGenerator.GetResponse(LastUserInput);
+                _activityLog.LogChatInteraction(LastUserInput, response, ChatResponseType.Regular, _currentUserName);
                 return new ChatResponse(ChatResponseType.Regular, response);
             }
             catch (Exception ex)
             {
                 string errorResponse = $"An error occurred while processing your request: {ex.Message}";
+                _activityLog.LogChatInteraction(LastUserInput, errorResponse, ChatResponseType.Error, _currentUserName);
                 return new ChatResponse(ChatResponseType.Error, errorResponse);
             }
         }
@@ -182,7 +404,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
         }
 
         /// <summary>
-        /// Handle task creation from natural language input
+        /// Handle task creation from natural language input with interactive reminder confirmation
         /// </summary>
         private ChatResponse HandleTaskCreation(string input)
         {
@@ -194,32 +416,29 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 {
                     return new ChatResponse(ChatResponseType.Task,
                         "I couldn't identify the task title. Please specify what task you'd like to create. " +
-                        "Example: 'Create task: Update firewall settings by tomorrow'");
+                        "Example: 'Add task - Review privacy settings'");
                 }
 
+                // Create the task first
                 _taskManager.AddTask(
                     taskInfo.Title,
                     taskInfo.Description,
                     taskInfo.DueDate,
                     taskInfo.Priority,
                     taskInfo.Category,
-                    taskInfo.ReminderTime
+                    null // Don't set reminder yet
                 );
 
-                string response = $"✅ Task created successfully!\n" +
-                                $"📋 Title: {taskInfo.Title}\n" +
-                                $"📅 Due: {taskInfo.DueDate:MMM dd, yyyy HH:mm}\n" +
-                                $"🔥 Priority: {taskInfo.Priority}\n" +
-                                $"📂 Category: {taskInfo.Category}";
-
-                if (taskInfo.ReminderTime.HasValue)
-                {
-                    response += $"\n⏰ Reminder: {taskInfo.ReminderTime.Value.TotalHours} hours before due date";
-                }
+                // Format the initial response like the example
+                string response = $"Task added with the description \"{taskInfo.Description}\" Would you like a reminder?";
 
                 // Track in user memory
                 _userMemory.AddDiscussedTopic("task_management");
                 _userMemory.RecordPositiveTopicInteraction("task_creation");
+
+                // Store the task ID for potential reminder setup
+                _pendingReminderTaskId = int.TryParse(_taskManager.GetAllTasks().LastOrDefault()?.Id, out var taskId) ? taskId : (int?)null;
+                _awaitingReminderResponse = true;
 
                 return new ChatResponse(ChatResponseType.Task, response);
             }
@@ -227,6 +446,146 @@ namespace ST10439147_PROG6221_POE.MyClasses
             {
                 return new ChatResponse(ChatResponseType.Error, $"Failed to create task: {ex.Message}");
             }
+        }
+
+
+        /// <summary>
+        /// Handle reminder confirmation responses
+        /// </summary>
+        private ChatResponse HandleReminderConfirmation(string input)
+        {
+            if (!_awaitingReminderResponse || !_pendingReminderTaskId.HasValue)
+            {
+                return null; // Not waiting for reminder response
+            }
+
+            string lowerInput = input.ToLower().Trim();
+
+            // Check if user wants a reminder
+            if (lowerInput.StartsWith("yes") || lowerInput.Contains("remind me") || lowerInput.Contains("in ") || lowerInput.Contains("reminder"))
+            {
+                // Parse the reminder time from input
+                TimeSpan? reminderTime = ParseReminderTimeFromConfirmation(input);
+
+                if (reminderTime.HasValue)
+                {
+                    // Update the task with reminder
+                    var task = _taskManager.GetAllTasks().FirstOrDefault(t => t.Id == _pendingReminderTaskId.Value.ToString());
+                    if (task != null)
+                    {
+                        _taskManager.UpdateTaskReminder(_pendingReminderTaskId.Value.ToString(), reminderTime.Value);
+
+                        // Reset pending state
+                        _awaitingReminderResponse = false;
+                        _pendingReminderTaskId = null;
+
+                        string reminderText = FormatReminderTime(reminderTime.Value);
+                        return new ChatResponse(ChatResponseType.Task, $"Got it! I'll remind you {reminderText}.");
+                    }
+                }
+                else
+                {
+                    return new ChatResponse(ChatResponseType.Task,
+                        "Please specify when you'd like to be reminded. For example: 'Yes, remind me in 3 days' or 'Yes, remind me tomorrow'");
+                }
+            }
+            else if (lowerInput == "no" || lowerInput == "no thanks" || lowerInput.Contains("don't need"))
+            {
+                // User doesn't want a reminder
+                _awaitingReminderResponse = false;
+                _pendingReminderTaskId = null;
+
+                return new ChatResponse(ChatResponseType.Task, "No problem! Task created without a reminder.");
+            }
+
+            return null; // Didn't match reminder confirmation pattern
+        }
+
+
+        /// <summary>
+        /// Parse reminder time from user's confirmation response
+        /// </summary>
+        private TimeSpan? ParseReminderTimeFromConfirmation(string input)
+        {
+            var lowerInput = input.ToLower();
+
+            // Handle "in X days" pattern
+            var dayMatch = Regex.Match(lowerInput, @"in\s+(\d+(?:\.\d+)?)\s+days?");
+            if (dayMatch.Success)
+            {
+                double days = double.Parse(dayMatch.Groups[1].Value);
+                return TimeSpan.FromDays(days);
+            }
+
+            // Handle "in X hours"
+            var hourMatch = Regex.Match(lowerInput, @"in\s+(\d+(?:\.\d+)?)\s+hours?");
+            if (hourMatch.Success)
+            {
+                double hours = double.Parse(hourMatch.Groups[1].Value);
+                return TimeSpan.FromHours(hours);
+            }
+
+            // Handle "tomorrow", "today"
+            if (lowerInput.Contains("tomorrow"))
+                return TimeSpan.FromDays(1);
+            if (lowerInput.Contains("today"))
+                return TimeSpan.FromHours(1);
+
+            return null;
+        }
+
+        /// <summary>
+        /// Format reminder time for display
+        /// </summary>
+        private string FormatReminderTime(TimeSpan reminderTime)
+        {
+            if (reminderTime.TotalDays >= 1)
+            {
+                int days = (int)reminderTime.TotalDays;
+                return $"in {days} day{(days > 1 ? "s" : "")}";
+            }
+            else if (reminderTime.TotalHours >= 1)
+            {
+                int hours = (int)reminderTime.TotalHours;
+                return $"in {hours} hour{(hours > 1 ? "s" : "")}";
+            }
+            else
+            {
+                return "shortly";
+            }
+        }
+
+        /// <summary>
+        /// Enhanced task title extraction to handle "Add task - Title" format
+        /// </summary>
+        private string ExtractTaskTitleFromInput(string input)
+        {
+            // Look for "Add task - Title" pattern first
+            var dashPattern = @"(?:add|create|new)\s+task\s*-\s*(.+?)(?:\s+by\s+|\s+due\s+|\s+priority\s+|$)";
+            var match = Regex.Match(input, dashPattern, RegexOptions.IgnoreCase);
+            if (match.Success && match.Groups.Count > 1)
+            {
+                return match.Groups[1].Value.Trim();
+            }
+
+            // Original patterns as fallback
+            var patterns = new[]
+            {
+                @"(?:create|add|new)\s+task:?\s*(.+?)(?:\s+by\s+|\s+due\s+|\s+priority\s+|$)",
+                @"task:?\s*(.+?)(?:\s+by\s+|\s+due\s+|\s+priority\s+|$)",
+                @"(?:remind me to|need to|should)\s+(.+?)(?:\s+by\s+|\s+due\s+|\s+priority\s+|$)"
+            };
+
+            foreach (var pattern in patterns)
+            {
+                match = Regex.Match(input, pattern, RegexOptions.IgnoreCase);
+                if (match.Success && match.Groups.Count > 1)
+                {
+                    return match.Groups[1].Value.Trim();
+                }
+            }
+
+            return string.Empty;
         }
 
         /// <summary>
@@ -297,19 +656,22 @@ namespace ST10439147_PROG6221_POE.MyClasses
         {
             try
             {
-                // This is a simplified version - in a real implementation, you'd need
-                // a way to identify which specific task to update (by ID, title match, etc.)
-                var tasks = _taskManager.GetTasksByStatus(TaskStatus.Pending);
+                // Try to identify the task by title in the input
+                var allTasks = _taskManager.GetAllTasks();
+                var taskToUpdate = allTasks
+                    .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.Title) && input.ToLower().Contains(t.Title.ToLower()));
 
-                if (tasks.Count == 0)
+                if (taskToUpdate == null)
                 {
-                    return new ChatResponse(ChatResponseType.Task,
-                        "No pending tasks found to update. Use 'list tasks' to see all tasks.");
+                    // Fallback: update first pending task if no title match
+                    var pendingTasks = _taskManager.GetTasksByStatus(TaskStatus.Pending);
+                    if (pendingTasks.Count == 0)
+                    {
+                        return new ChatResponse(ChatResponseType.Task,
+                            "No pending tasks found to update. Use 'list tasks' to see all tasks.");
+                    }
+                    taskToUpdate = pendingTasks.First();
                 }
-
-                // For demo purposes, let's assume updating the first pending task
-                // In a real implementation, you'd parse the input to identify the specific task
-                var taskToUpdate = tasks.First();
 
                 TaskStatus newStatus = TaskStatus.InProgress;
                 if (input.Contains("complete") || input.Contains("done") || input.Contains("finish"))
@@ -383,11 +745,33 @@ namespace ST10439147_PROG6221_POE.MyClasses
         /// </summary>
         private ChatResponse HandleTaskDeletion(string input)
         {
-            // This would need more sophisticated parsing to identify which task to delete
-            // For now, return a guidance message
-            return new ChatResponse(ChatResponseType.Task,
-                "To delete a task, please use the task management interface or specify the exact task title. " +
-                "For example: 'Delete the password update task'");
+            try
+            {
+                // Try to identify the task by title in the input
+                var allTasks = _taskManager.GetAllTasks();
+                var taskToDelete = allTasks
+                    .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.Title) && input.ToLower().Contains(t.Title.ToLower()));
+
+                if (taskToDelete == null)
+                {
+                    return new ChatResponse(ChatResponseType.Task,
+                        "Could not identify the task to delete. Please specify the exact task title. For example: 'Delete the password update task'");
+                }
+
+                bool deleted = _taskManager.DeleteTask(taskToDelete.Id);
+                if (deleted)
+                {
+                    return new ChatResponse(ChatResponseType.Task, $"🗑️ Task '{taskToDelete.Title}' deleted successfully.");
+                }
+                else
+                {
+                    return new ChatResponse(ChatResponseType.Error, $"Failed to delete task '{taskToDelete.Title}'.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ChatResponse(ChatResponseType.Error, $"Failed to delete task: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -434,13 +818,66 @@ namespace ST10439147_PROG6221_POE.MyClasses
         }
 
         /// <summary>
-        /// Extract task description from input
+        /// Enhanced task description to create a more natural description
         /// </summary>
         private string ExtractTaskDescription(string input)
         {
-            // For now, use the same as title - could be enhanced to look for description keywords
-            return $"Task created from: {input}";
+            var title = ExtractTaskTitle(input);
+            if (string.IsNullOrWhiteSpace(title))
+                return $"Task created from: {input}";
+
+            string lowerTitle = title.ToLower();
+
+            if (lowerTitle.Contains("encryption"))
+                return "Ensure sensitive data is encrypted both at rest and in transit.";
+
+            if (lowerTitle.Contains("malware"))
+                return "Run a malware scan and update your anti-malware definitions.";
+
+            if (lowerTitle.Contains("patch"))
+                return "Apply the latest security patches to all systems and applications.";
+
+            if (lowerTitle.Contains("vpn"))
+                return "Use a VPN when accessing public Wi-Fi to protect your data.";
+
+            if (lowerTitle.Contains("breach"))
+                return "Investigate potential data breaches and update credentials if necessary.";
+
+            if (lowerTitle.Contains("compliance"))
+                return "Review compliance requirements and ensure all policies are up to date.";
+
+            if (lowerTitle.Contains("training"))
+                return "Schedule cybersecurity awareness training for all staff members.";
+
+            if (lowerTitle.Contains("incident"))
+                return "Prepare an incident response plan to handle security events effectively.";
+            // Use keyword-based templates
+            if (lowerTitle.Contains("privacy"))
+                return "Review account privacy settings to ensure your data is protected.";
+
+            if (lowerTitle.Contains("password"))
+                return "Update passwords to maintain strong security across accounts.";
+
+            if (lowerTitle.Contains("backup"))
+                return "Verify backups to ensure important data is safely stored.";
+
+            if (lowerTitle.Contains("software") || lowerTitle.Contains("update"))
+                return "Check for and install any critical software updates.";
+
+            if (lowerTitle.Contains("2fa") || lowerTitle.Contains("two-factor"))
+                return "Enable two-factor authentication for stronger account security.";
+
+            if (lowerTitle.Contains("audit"))
+                return "Conduct a security audit to evaluate and improve system defenses.";
+
+            if (lowerTitle.Contains("scan") || lowerTitle.Contains("virus"))
+                return "Perform a full antivirus scan to detect and remove threats.";
+
+            // Default fallback
+            return $"Task: {title.Trim()}. Be sure to complete it on time.";
         }
+
+
 
         /// <summary>
         /// Parse due date from input
@@ -652,15 +1089,30 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
         #region Keyword Detection Methods
 
+
+        private int? GetAnswerIndexFromLetter(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return null;
+
+            char letter = char.ToUpper(input.Trim()[0]);
+            if (letter >= 'A' && letter <= 'Z')
+            {
+                return letter - 'A';
+            }
+
+            return null;
+        }
+
         private bool ContainsTaskCreationKeywords(string input)
         {
-            var keywords = new[] { "create task", "add task", "new task", "task:", "remind me to", "need to", "should" };
+            var keywords = new[] { "create task", "add task", "new task", "task:", "remind me to", "need to", "should", "add a task", "reminder" };
             return keywords.Any(keyword => input.Contains(keyword));
         }
 
         private bool ContainsTaskListKeywords(string input)
         {
-            var keywords = new[] { "list tasks", "show tasks", "my tasks", "view tasks", "what tasks", "task list" };
+            var keywords = new[] { "list tasks", "show tasks", "show task", "my tasks", "view tasks", "what tasks", "task list", "What have you done for me" };
             return keywords.Any(keyword => input.Contains(keyword));
         }
 
@@ -807,6 +1259,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
         }
     }
 
+
     /// <summary>
     /// Represents a chat response with type information
     /// </summary>
@@ -832,6 +1285,8 @@ namespace ST10439147_PROG6221_POE.MyClasses
         Exit,
         Error,
         Welcome,
-        Task
+        Task,
+        Quiz
     }
 }
+//----------------------------------------------------------------DDDDDoooooo END OF FILE DDDDDoooooooo----------------------------------------------------------------------------------------------------------//
