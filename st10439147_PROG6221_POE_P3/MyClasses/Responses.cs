@@ -272,7 +272,7 @@ Ask me about any of these terms for detailed information and practical advice!" 
 This detailed summary provides comprehensive understanding of each cybersecurity concept. For specific implementation advice or additional questions about any topic, please ask!" }
             };
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Method to search for keywords in user input and return appropriate responses
         /// </summary>
@@ -295,7 +295,7 @@ This detailed summary provides comprehensive understanding of each cybersecurity
 
             return ChatResponse(input);
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Handles general chat responses when no specific cybersecurity keywords are detected
         /// </summary>

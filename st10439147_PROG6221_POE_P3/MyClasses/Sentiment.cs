@@ -47,7 +47,7 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
 
         /// Constructor that initializes sentiment word lists
         /// This constructor sets up the lists of words that will be used to determine sentiment.
-        /// 
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         public Sentiment()
         {
             // Initialize lists with sentiment words
@@ -104,7 +104,7 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
             foreach (var word in _confusedWords) _wordToSentiment[word] = "confused";
             foreach (var word in _frustratedWords) _wordToSentiment[word] = "frustrated";
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Analyze the sentiment of the user input
         /// This method takes a string input and analyzes its sentiment based on predefined lists of words.
@@ -227,7 +227,7 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
                 return "neutral";
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Check if input contains a specific phrase
         /// This method checks if the input string contains a specific phrase.
@@ -236,7 +236,7 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
         {
             return input.Contains(phrase);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Count the occurrences of words from a list in the input using word boundaries
         /// This method counts how many words from a given list appear in the input string.
@@ -281,7 +281,7 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
 
             return count;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get a description of the analyzed sentiment
         /// This method provides a human-readable description of the sentiment detected in the input.
@@ -318,7 +318,7 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
                     return "Sentiment could not be determined";
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get confidence score for the sentiment analysis (0-1)
         /// This method calculates a confidence score based on the number of sentiment words found in the input.

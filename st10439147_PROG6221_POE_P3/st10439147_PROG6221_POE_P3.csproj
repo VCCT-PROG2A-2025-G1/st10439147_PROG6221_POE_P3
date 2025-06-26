@@ -55,7 +55,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Communication.cs" />
     <Compile Include="MyClasses\ActivityLog.cs" />
     <Compile Include="MyClasses\Quiz.cs" />
     <Compile Include="MyClasses\Task.cs" />

@@ -1,4 +1,15 @@
-﻿using ST10439147_PROG6221_POE_P3.MyClasses;
+﻿//Dillon Rinkwest
+//Student Number: ST10439147
+// Module: PROG6221
+// Group: 1
+
+//References
+//-ClaudAI from Anthropic https://claude.ai/
+//-ChatGPT from OpenAI https://chatgpt.com/
+//-Deepseek AI Model from High-Flyer https://www.deepseek.com/
+//-Stack Overflow https://stackoverflow.com/
+//-Pro C# 10 with .NET 6, Foundational Principles and Practices in Programming, Eleventh Edition by Andrew Troelsen and Phil Japiske
+using ST10439147_PROG6221_POE_P3.MyClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +32,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         public event EventHandler<TaskEventArgs> TaskAdded;
         public event EventHandler<TaskEventArgs> TaskUpdated;
         public event EventHandler<TaskEventArgs> TaskCompleted;
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         public TaskManager(UserMemory userMemory)
         {
             _tasks = new List<Task>();
@@ -32,7 +43,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             _reminderTimer.Elapsed += CheckReminders;
             _reminderTimer.Start();
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Add a new task
         /// </summary>
@@ -67,7 +78,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
                 throw new InvalidOperationException($"Failed to add task: {ex.Message}", ex);
             }
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Update task status
         /// </summary>
@@ -94,7 +105,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
                 throw new InvalidOperationException($"Failed to update task: {ex.Message}", ex);
             }
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Update task reminder
         /// </summary>
@@ -110,7 +121,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             // No need to trigger reminder here; it will be caught by timer when due
             TaskUpdated?.Invoke(this, new TaskEventArgs(task));
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get all tasks
         /// </summary>
@@ -118,7 +129,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return new List<Task>(_tasks);
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get tasks by status
         /// </summary>
@@ -126,7 +137,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return _tasks.Where(t => t.Status == status).ToList();
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get overdue tasks
         /// </summary>
@@ -134,7 +145,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return _tasks.Where(t => t.IsOverdue).ToList();
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get upcoming tasks (next 3 days)
         /// </summary>
@@ -142,7 +153,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return _tasks.Where(t => t.IsUpcoming).ToList();
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get tasks by priority
         /// </summary>
@@ -151,7 +162,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             return _tasks.Where(t => t.Priority == priority && t.Status != TaskStatus.Completed)
                         .OrderBy(t => t.DueDate).ToList();
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Delete a task
         /// </summary>
@@ -172,7 +183,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
                 return false;
             }
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Add cybersecurity-specific tasks
         /// </summary>
@@ -183,7 +194,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             AddTask(taskInfo.Title, $"{taskInfo.Description}\n{additionalNotes}",
                    dueDate, taskInfo.Priority, "Cybersecurity", TimeSpan.FromHours(1));
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Check for reminders
         /// </summary>
@@ -212,7 +223,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
                 Console.WriteLine($"Reminder check error: {ex.Message}");
             }
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get predefined cybersecurity task information
         /// </summary>
@@ -264,12 +275,13 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
                     };
             }
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         public void Dispose()
         {
             _reminderTimer?.Stop();
             _reminderTimer?.Dispose();
         }
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
     }
 
     // Supporting classes and enums
@@ -278,7 +290,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         public Task Task { get; }
         public TaskEventArgs(Task task) => Task = task;
     }
-
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
     public class TaskReminderEventArgs : EventArgs
     {
         public Task Task { get; }
@@ -289,14 +301,14 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             Task = task;
             Message = $"Reminder: {task.Title} is due {task.DueDate:MMM dd, yyyy HH:mm}";
         }
-
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         public TaskReminderEventArgs(Task task, string message)
         {
             Task = task;
             Message = message;
         }
     }
-
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
     public enum CybersecurityTaskType
     {
         PasswordUpdate,
@@ -305,7 +317,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         SecurityAudit,
         TwoFactorSetup
     }
-
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
     public class CybersecurityTaskInfo
     {
         public string Title { get; set; }

@@ -1,4 +1,16 @@
-﻿using ST10439147_PROG6221_POE_P3.MyClasses;
+﻿//Dillon Rinkwest
+//Student Number: ST10439147
+// Module: PROG6221
+// Group: 1
+
+//References
+//-ClaudAI from Anthropic https://claude.ai/
+//-ChatGPT from OpenAI https://chatgpt.com/
+//-Deepseek AI Model from High-Flyer https://www.deepseek.com/
+//-Stack Overflow https://stackoverflow.com/
+//-Pro C# 10 with .NET 6, Foundational Principles and Practices in Programming, Eleventh Edition by Andrew Troelsen and Phil Japiske
+
+using ST10439147_PROG6221_POE_P3.MyClasses;
 using st10439147_PROG6221_POE_P3.MyClasses;
 using System;
 using System.Collections.Generic;
@@ -61,6 +73,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             _quizController.QuizCompleted += OnQuizCompleted;
         }
 
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Sets the current user name (called from external source like NextPage)
         /// </summary>
@@ -68,7 +81,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
         {
             _currentUserName = userName;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Gets the current user name
         /// </summary>
@@ -76,7 +89,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
         {
             return _currentUserName ?? string.Empty;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Validates user input according to the original Communication class rules
         /// </summary>
@@ -94,18 +107,18 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return new ValidationResult(true, string.Empty);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         public string GetActivityLog(int maxEntries, bool includeTimestamps)
         {
             return _activityLog.GetFormattedActivityLog(maxEntries, includeTimestamps);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void OnQuizStarted(object sender, EventArgs e)
         {
             OnBotResponse?.Invoke("🎯 The quiz has started! Get ready!");
             _activityLog.LogQuizActivity("started", null, _currentUserName);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void OnQuizQuestionAsked(object sender, QuestionAskedEventArgs e)
         {
             var options = string.Join("\n", e.Question.GetFormattedOptions());
@@ -113,7 +126,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             OnBotResponse?.Invoke(questionMessage);
             _activityLog.LogQuizActivity("question_asked", $"Question {e.QuestionNumber}: {e.Question.Question}", _currentUserName);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void OnQuizAnswerProvided(object sender, AnswerResultEventArgs e)
         {
             var result = e.IsCorrect ? "✅ Correct!" : $"❌ Incorrect.\n{e.Feedback}";
@@ -121,6 +134,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             _activityLog.LogQuizActivity("answer_provided", $"Answer: {(e.IsCorrect ? "Correct" : "Incorrect")}", _currentUserName);
         }
 
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void OnQuizCompleted(object sender, QuizCompletedEventArgs e)
         {
             var message = $"🎉 Quiz completed!\nFinal Score: {e.FinalScore}/{e.TotalQuestions} ({e.Percentage:0.0}%)\n{e.PerformanceFeedback}";
@@ -128,6 +142,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             _activityLog.LogQuizActivity("completed", $"Score: {e.FinalScore}/{e.TotalQuestions} ({e.Percentage:0.0}%)", _currentUserName);
         }
 
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Modified ProcessInput method to handle reminder confirmation
         /// Add this logic to your existing ProcessInput method after input validation
@@ -360,7 +375,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 return new ChatResponse(ChatResponseType.Error, errorResponse);
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Process task-related commands
         /// </summary>
@@ -407,7 +422,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 return new ChatResponse(ChatResponseType.Error, $"Task command error: {ex.Message}");
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Handle task creation from natural language input with interactive reminder confirmation
         /// </summary>
@@ -453,7 +468,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             }
         }
 
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Handle reminder confirmation responses
         /// </summary>
@@ -505,7 +520,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return null; // Didn't match reminder confirmation pattern
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
         /// <summary>
         /// Parse reminder time from user's confirmation response
@@ -538,7 +553,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return null;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Format reminder time for display
         /// </summary>
@@ -559,7 +574,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 return "shortly";
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Enhanced task title extraction to handle "Add task - Title" format
         /// </summary>
@@ -592,7 +607,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return string.Empty;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Handle task listing requests
         /// </summary>
@@ -653,7 +668,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 return new ChatResponse(ChatResponseType.Error, $"Failed to list tasks: {ex.Message}");
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Handle task status updates
         /// </summary>
@@ -705,7 +720,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 return new ChatResponse(ChatResponseType.Error, $"Failed to update task: {ex.Message}");
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Handle cybersecurity task creation shortcuts
         /// </summary>
@@ -748,7 +763,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 return new ChatResponse(ChatResponseType.Error, $"Failed to create cybersecurity task: {ex.Message}");
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Handle task deletion
         /// </summary>
@@ -782,7 +797,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 return new ChatResponse(ChatResponseType.Error, $"Failed to delete task: {ex.Message}");
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Parse task information from natural language input
         /// </summary>
@@ -801,6 +816,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             return taskInfo;
         }
 
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Extract task title from input
         /// </summary>
@@ -825,6 +841,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return string.Empty;
         }
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
         /// <summary>
         /// Enhanced task description to create a more natural description
@@ -886,7 +903,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             return $"Task: {title.Trim()}. Be sure to complete it on time.";
         }
 
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
         /// <summary>
         /// Parse due date from input
@@ -942,7 +959,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return null;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Parse priority from input
         /// </summary>
@@ -959,7 +976,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return TaskPriority.Medium; // Default
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Parse category from input
         /// </summary>
@@ -978,7 +995,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return "General";
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Parse reminder time from input
         /// </summary>
@@ -1002,7 +1019,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return null;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Format task list for display
         /// </summary>
@@ -1035,6 +1052,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             return response;
         }
 
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get status emoji for task
         /// </summary>
@@ -1053,6 +1071,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             }
         }
 
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get priority emoji
         /// </summary>
@@ -1072,7 +1091,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                     return "⚪";
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get formatted due date information
         /// </summary>
@@ -1095,7 +1114,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 return $"Due: {task.DueDate:MMM dd, yyyy}";
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         #region Keyword Detection Methods
 
 
@@ -1112,31 +1131,32 @@ namespace ST10439147_PROG6221_POE.MyClasses
 
             return null;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private bool ContainsTaskCreationKeywords(string input)
         {
             var keywords = new[] { "create task", "add task", "new task", "task:", "remind me to", "need to", "should", "add a task", "reminder" };
             return keywords.Any(keyword => input.Contains(keyword));
         }
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
         private bool ContainsTaskListKeywords(string input)
         {
             var keywords = new[] { "list tasks", "show tasks", "show task", "my tasks", "view tasks", "what tasks", "task list", "What have you done for me" };
             return keywords.Any(keyword => input.Contains(keyword));
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private bool ContainsTaskUpdateKeywords(string input)
         {
             var keywords = new[] { "complete task", "finish task", "done with", "mark as complete", "update task", "task done" };
             return keywords.Any(keyword => input.Contains(keyword));
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private bool ContainsTaskDeleteKeywords(string input)
         {
             var keywords = new[] { "delete task", "remove task", "cancel task" };
             return keywords.Any(keyword => input.Contains(keyword));
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private bool ContainsCybersecurityTaskKeywords(string input)
         {
             var keywords = new[] { "security task", "password update", "backup check", "security audit", "2fa setup", "cyber task" };
@@ -1144,33 +1164,33 @@ namespace ST10439147_PROG6221_POE.MyClasses
         }
 
         #endregion
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         #region Event Handlers
 
         private void OnTaskManagerTaskAdded(object sender, TaskEventArgs e)
         {
             OnTaskCreated?.Invoke(e.Task);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void OnTaskManagerTaskUpdated(object sender, TaskEventArgs e)
         {
             OnTaskUpdated?.Invoke(e.Task);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void OnTaskManagerTaskCompleted(object sender, TaskEventArgs e)
         {
             // Handle task completion - could show celebration message
             OnBotResponse?.Invoke($"🎉 Congratulations! You completed the task: {e.Task.Title}");
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void OnTaskManagerReminderTriggered(object sender, TaskReminderEventArgs e)
         {
             // Handle reminder - show reminder message
             OnBotResponse?.Invoke($"⏰ REMINDER: {e.Message}");
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         #endregion
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Gets an enhanced help message including task commands
         /// </summary>
@@ -1196,7 +1216,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                    "• 'in 3 days', 'by 12/25/2024'\n" +
                    "• 'high priority', 'critical', 'remind me 2 hours before'";
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Gets a welcome message for the current user
         /// </summary>
@@ -1214,7 +1234,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                        "Type 'help' to see what I can do or 'exit' to quit.";
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get task statistics for user
         /// </summary>
@@ -1239,7 +1259,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             }
         }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     /// <summary>
     /// Helper class for parsing task information
     /// </summary>
@@ -1252,7 +1272,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
         public string Category { get; set; } = "General";
         public TimeSpan? ReminderTime { get; set; }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     /// <summary>
     /// Represents the result of input validation
     /// </summary>
@@ -1267,7 +1287,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             ErrorMessage = errorMessage ?? string.Empty;
         }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
     /// <summary>
     /// Represents a chat response with type information
@@ -1283,7 +1303,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             Message = message ?? string.Empty;
         }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     /// <summary>
     /// Enum for different types of chat responses
     /// </summary>

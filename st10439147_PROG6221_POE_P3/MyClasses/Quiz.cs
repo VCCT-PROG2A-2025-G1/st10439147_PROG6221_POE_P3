@@ -1,4 +1,15 @@
-﻿using ST10439147_PROG6221_POE_P3.MyClasses;
+﻿//Dillon Rinkwest
+//Student Number: ST10439147
+// Module: PROG6221
+// Group: 1
+
+//References
+//-ClaudAI from Anthropic https://claude.ai/
+//-ChatGPT from OpenAI https://chatgpt.com/
+//-Deepseek AI Model from High-Flyer https://www.deepseek.com/
+//-Stack Overflow https://stackoverflow.com/
+//-Pro C# 10 with .NET 6, Foundational Principles and Practices in Programming, Eleventh Edition by Andrew Troelsen and Phil Japiske
+using ST10439147_PROG6221_POE_P3.MyClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +23,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         public int QuestionNumber { get; set; }
         public int TotalQuestions { get; set; }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     public class AnswerResultEventArgs : EventArgs
     {
         public QuizQuestion Question { get; set; }
@@ -21,7 +32,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         public int TotalQuestions { get; set; }
         public string Feedback { get; set; }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     public class QuizCompletedEventArgs : EventArgs
     {
         public int FinalScore { get; set; }
@@ -30,7 +41,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         public string PerformanceFeedback { get; set; }
         public Dictionary<string, object> UserSummary { get; set; }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     /// <summary>
     /// GUI-compatible Quiz Game Controller
     /// </summary>
@@ -53,7 +64,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         public event EventHandler<QuizCompletedEventArgs> QuizCompleted;
         public event EventHandler QuizStarted;
         public event EventHandler QuizReset;
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         public QuizGameController()
         {
             _userMemory = new UserMemory();
@@ -63,7 +74,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             _currentQuestionIndex = 0;
             _quizInProgress = false;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         // Properties for GUI access
         public int CurrentScore => _scoreManager.CurrentScore;
         public int TotalQuestions => _scoreManager.TotalQuestions;
@@ -298,7 +309,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             _userMemory.RecordTopicQuestion(question.Topic);
         }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     /// <summary>
     /// Enhanced QuizQuestion class with GUI-specific methods
     /// </summary>
@@ -315,7 +326,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             Options = new List<string>();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Validates if the question is properly configured
         /// </summary>
@@ -327,7 +338,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
                    CorrectAnswerIndex < Options.Count &&
                    !string.IsNullOrEmpty(Topic);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Gets the correct answer text
         /// </summary>
@@ -337,7 +348,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
                 ? Options[CorrectAnswerIndex]
                 : "";
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Gets the option letter (A, B, C, D) for the correct answer
         /// </summary>
@@ -345,7 +356,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return (char)('A' + CorrectAnswerIndex);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Format question for GUI display with HTML-like formatting
         /// </summary>
@@ -353,7 +364,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return Question?.Replace("\n", Environment.NewLine) ?? "";
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get options with letter prefixes for GUI
         /// </summary>
@@ -367,7 +378,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             return formattedOptions;
         }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     /// <summary>
     /// Enhanced QuestionBank class (keeping original functionality)
     /// </summary>
@@ -380,7 +391,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             _questions = new List<QuizQuestion>();
             InitializeQuestions();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Gets a random selection of questions for the quiz
         /// </summary>
@@ -388,7 +399,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return _questions.OrderBy(x => Guid.NewGuid()).Take(count).ToList();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Gets questions by specific topic
         /// </summary>
@@ -396,7 +407,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return _questions.Where(q => q.Topic.Equals(topic, StringComparison.OrdinalIgnoreCase)).ToList();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Gets all available topics
         /// </summary>
@@ -404,7 +415,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return _questions.Select(q => q.Topic).Distinct().OrderBy(t => t).ToList();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Gets total number of questions available
         /// </summary>
@@ -412,7 +423,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         {
             return _questions.Count;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get questions count by topic
         /// </summary>
@@ -421,13 +432,63 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             return _questions.GroupBy(q => q.Topic)
                            .ToDictionary(g => g.Key, g => g.Count());
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Initialize all cybersecurity questions
         /// </summary>
         private void InitializeQuestions()
         {
             // Phishing Questions
+            // True/False Questions
+            _questions.Add(new QuizQuestion
+            {
+                Question = "True or False: You should never share your password with anyone, even trusted friends or family.",
+                Options = new List<string> { "True", "False" },
+                CorrectAnswerIndex = 0,
+                Topic = "password security",
+                Explanation = "Passwords should always be kept private to maintain security.",
+                Feedback = "Correct! Never share your password."
+            });
+
+            _questions.Add(new QuizQuestion
+            {
+                Question = "True or False: All websites with HTTPS are guaranteed to be safe.",
+                Options = new List<string> { "True", "False" },
+                CorrectAnswerIndex = 1,
+                Topic = "safe browsing",
+                Explanation = "HTTPS means data is encrypted, but it does not guarantee the site is trustworthy.",
+                Feedback = "Correct! Always verify the website, even if it uses HTTPS."
+            });
+
+            _questions.Add(new QuizQuestion
+            {
+                Question = "True or False: Clicking on links in unsolicited emails can put your computer at risk.",
+                Options = new List<string> { "True", "False" },
+                CorrectAnswerIndex = 0,
+                Topic = "phishing",
+                Explanation = "Links in unsolicited emails may lead to phishing sites or malware.",
+                Feedback = "Correct! Be cautious with email links."
+            });
+
+            _questions.Add(new QuizQuestion
+            {
+                Question = "True or False: Using the same password for multiple accounts is a good security practice.",
+                Options = new List<string> { "True", "False" },
+                CorrectAnswerIndex = 1,
+                Topic = "password security",
+                Explanation = "Reusing passwords increases risk if one account is compromised.",
+                Feedback = "Correct! Use unique passwords for each account."
+            });
+
+            _questions.Add(new QuizQuestion
+            {
+                Question = "True or False: Antivirus software should be updated regularly to protect against new threats.",
+                Options = new List<string> { "True", "False" },
+                CorrectAnswerIndex = 0,
+                Topic = "malware",
+                Explanation = "Regular updates ensure antivirus software can detect the latest threats.",
+                Feedback = "Correct! Keep your antivirus software up to date."
+            });
             _questions.Add(new QuizQuestion
             {
                 Question = "What should you do if you receive an email asking for your password?",
@@ -743,7 +804,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             });
         }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     /// <summary>
     /// Enhanced QuizScoreManager (keeping original functionality)
     /// </summary>
@@ -756,13 +817,13 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
         public int CurrentScore => _currentScore;
         public int TotalQuestions => _totalQuestions;
         public double CurrentPercentage => _totalQuestions > 0 ? (_currentScore / (double)_totalQuestions) * 100 : 0;
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         public QuizScoreManager()
         {
             _results = new List<QuizResult>();
             ResetScore();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Record a question result
         /// </summary>
@@ -782,7 +843,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
 
             _totalQuestions++;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Reset the score for a new quiz
         /// </summary>
@@ -792,7 +853,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
             _totalQuestions = 0;
             _results.Clear();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get feedback message based on current performance
         /// </summary>
@@ -816,7 +877,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
                     return "Keep practicing! Cybersecurity knowledge is crucial for staying safe online. 🔒";
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get detailed performance analysis
         /// </summary>
@@ -844,7 +905,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
 
             return topicScores;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Get topics that need improvement
         /// </summary>
@@ -873,7 +934,7 @@ namespace st10439147_PROG6221_POE_P3.MyClasses
 
             return weakTopics;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Inner class to track individual question results
         /// </summary>

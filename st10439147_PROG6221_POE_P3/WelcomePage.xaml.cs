@@ -1,4 +1,15 @@
-﻿using ST10439147_PROG6221_POE.MyClasses;
+﻿//Dillon Rinkwest
+//Student Number: ST10439147
+// Module: PROG6221
+// Group: 1
+
+//References
+//-ClaudAI from Anthropic https://claude.ai/
+//-ChatGPT from OpenAI https://chatgpt.com/
+//-Deepseek AI Model from High-Flyer https://www.deepseek.com/
+//-Stack Overflow https://stackoverflow.com/
+//-Pro C# 10 with .NET 6, Foundational Principles and Practices in Programming, Eleventh Edition by Andrew Troelsen and Phil Japiske
+using ST10439147_PROG6221_POE.MyClasses;
 using ST10439147_PROG6221_POE_P3.MyClasses;
 using System;
 using System.Threading.Tasks;
@@ -46,7 +57,7 @@ namespace st10439147_PROG6221_POE_P3
             // Start entrance animations (but buttons remain hidden)
             StartEntranceAnimations();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void WelcomeWindow_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             try
@@ -63,7 +74,7 @@ namespace st10439147_PROG6221_POE_P3
                 // This can happen in some edge cases
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private async void WelcomeWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // Play the greeting sound and wait for it to complete
@@ -91,7 +102,7 @@ namespace st10439147_PROG6221_POE_P3
                 ShowButtonsWithAnimation();
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void HideButtons()
         {
             // Hide Continue and Exit buttons initially
@@ -104,7 +115,7 @@ namespace st10439147_PROG6221_POE_P3
             if (exitButton != null)
                 exitButton.Visibility = Visibility.Hidden;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void ShowButtonsWithAnimation()
         {
             // Show and animate the Continue and Exit buttons
@@ -123,7 +134,7 @@ namespace st10439147_PROG6221_POE_P3
                 AnimateButtonAppearance(exitButton, 0.4);
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void AnimateButtonAppearance(FrameworkElement element, double delay)
         {
             // Ensure element exists
@@ -184,7 +195,7 @@ namespace st10439147_PROG6221_POE_P3
                 element.RenderTransform = new System.Windows.Media.ScaleTransform(1, 1);
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void StartEntranceAnimations()
         {
             // Animate only the title and subtitle, not the buttons
@@ -197,7 +208,7 @@ namespace st10439147_PROG6221_POE_P3
             if (subtitleElement != null)
                 AnimateTextElementSlideIn(subtitleElement, 0.3);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void AnimateTextElementSlideIn(FrameworkElement element, double delay)
         {
             // Ensure element exists
@@ -247,8 +258,8 @@ namespace st10439147_PROG6221_POE_P3
                 element.RenderTransform = new System.Windows.Media.TranslateTransform(0, 0);
             }
         }
-
-        // SIMPLIFIED: Only Continue button functionality
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
+       
         private void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
             // Only allow continue if greeting has completed
@@ -264,7 +275,7 @@ namespace st10439147_PROG6221_POE_P3
 
             NavigateToNextPage();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void NavigateToNextPage()
         {
             // Create exit animation before opening main window
@@ -303,7 +314,7 @@ namespace st10439147_PROG6221_POE_P3
             this.BeginAnimation(UIElement.OpacityProperty, fadeOut);
         }
 
-        // Only Close/Exit button functionality  
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show(
@@ -326,7 +337,7 @@ namespace st10439147_PROG6221_POE_P3
                 this.BeginAnimation(UIElement.OpacityProperty, fadeOut);
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Static method to show the welcome window and wait for greeting completion
         /// </summary>
@@ -337,7 +348,7 @@ namespace st10439147_PROG6221_POE_P3
             var result = welcomeWindow.ShowDialog();
             return result == true;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Method to show welcome window as dialog and return result
         /// </summary>
@@ -346,7 +357,7 @@ namespace st10439147_PROG6221_POE_P3
         {
             return this.ShowDialog();
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Method to get the UserMemory instance
         /// </summary>
@@ -354,5 +365,7 @@ namespace st10439147_PROG6221_POE_P3
         {
             return _userMemory;
         }
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     }
 }
+//----------------------------------------------------------------DDDDDoooooo END OF FILE DDDDDoooooooo----------------------------------------------------------------------------------------------------------//

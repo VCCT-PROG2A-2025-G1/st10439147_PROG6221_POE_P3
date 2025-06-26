@@ -1,4 +1,15 @@
-﻿using System;
+﻿//Dillon Rinkwest
+//Student Number: ST10439147
+// Module: PROG6221
+// Group: 1
+
+//References
+//-ClaudAI from Anthropic https://claude.ai/
+//-ChatGPT from OpenAI https://chatgpt.com/
+//-Deepseek AI Model from High-Flyer https://www.deepseek.com/
+//-Stack Overflow https://stackoverflow.com/
+//-Pro C# 10 with .NET 6, Foundational Principles and Practices in Programming, Eleventh Edition by Andrew Troelsen and Phil Japiske
+using System;
 using System.Windows;
 using System.Windows.Media.Animation;
 using ST10439147_PROG6221_POE_P3.MyClasses; // Add this using statement
@@ -37,7 +48,7 @@ namespace st10439147_PROG6221_POE_P3
             // Initialize username properties
             IsUserNameSet = false;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void NextPageWindow_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             try
@@ -54,7 +65,7 @@ namespace st10439147_PROG6221_POE_P3
                 // This can happen in some edge cases
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         // Updated static method to accept UserMemory
         public static bool ShowNextPageAsDialog(UserMemory userMemory = null)
         {
@@ -63,7 +74,7 @@ namespace st10439147_PROG6221_POE_P3
             var result = nextPage.ShowDialog(); // ShowDialog() - this allows DialogResult
             return result == true;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         public static NextPage ShowNextPageAsWindow(UserMemory userMemory = null)
         {
             var nextPage = new NextPage(userMemory);
@@ -71,13 +82,13 @@ namespace st10439147_PROG6221_POE_P3
             nextPage.Show(); // Show() - don't set DialogResult for regular windows
             return nextPage;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         // Method to get the UserMemory instance (useful for passing to MainWindow)
         public UserMemory GetUserMemory()
         {
             return _userMemory;
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void InitializeDefaults()
         {
             // Check if NameTextBox exists before trying to use it
@@ -118,7 +129,7 @@ namespace st10439147_PROG6221_POE_P3
                 }
             };
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Validates user name according to the original Communication class rules
         /// </summary>
@@ -140,7 +151,7 @@ namespace st10439147_PROG6221_POE_P3
 
             return new ValidationResult(true, string.Empty);
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Sets the user name after validation and stores it in UserMemory
         /// </summary>
@@ -168,7 +179,7 @@ namespace st10439147_PROG6221_POE_P3
                 return false;
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
             if (NameTextBox == null)
@@ -200,7 +211,7 @@ namespace st10439147_PROG6221_POE_P3
 
             this.Hide(); // Don't call Close() unless you need to release the window
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void NavigateToMainWindow()
         {
             try
@@ -248,7 +259,7 @@ namespace st10439147_PROG6221_POE_P3
                     MessageBoxImage.Error);
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void SaveUserName()
         {
             try
@@ -280,7 +291,7 @@ namespace st10439147_PROG6221_POE_P3
                     MessageBoxImage.Error);
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show(
@@ -316,7 +327,7 @@ namespace st10439147_PROG6221_POE_P3
                 }
             }
         }
-
+        //------------------------------------------------------------------------------------------------------------------------------------------------------------//
         /// <summary>
         /// Public method to get the configured user name
         /// </summary>
@@ -325,7 +336,7 @@ namespace st10439147_PROG6221_POE_P3
             return IsUserNameSet ? UserName : "";
         }
     }
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------//
     /// <summary>
     /// Represents the result of input validation
     /// </summary>
@@ -341,3 +352,4 @@ namespace st10439147_PROG6221_POE_P3
         }
     }
 }
+//----------------------------------------------------------------DDDDDoooooo END OF FILE DDDDDoooooooo----------------------------------------------------------------------------------------------------------//

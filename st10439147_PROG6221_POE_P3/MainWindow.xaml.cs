@@ -1,4 +1,15 @@
-﻿using ST10439147_PROG6221_POE.MyClasses;
+﻿//Dillon Rinkwest
+//Student Number: ST10439147
+// Module: PROG6221
+// Group: 1
+
+//References
+//-ClaudAI from Anthropic https://claude.ai/
+//-ChatGPT from OpenAI https://chatgpt.com/
+//-Deepseek AI Model from High-Flyer https://www.deepseek.com/
+//-Stack Overflow https://stackoverflow.com/
+//-Pro C# 10 with .NET 6, Foundational Principles and Practices in Programming, Eleventh Edition by Andrew Troelsen and Phil Japiske
+using ST10439147_PROG6221_POE.MyClasses;
 using ST10439147_PROG6221_POE_P3.MyClasses;
 using st10439147_PROG6221_POE_P3.MyClasses;
 using System;
