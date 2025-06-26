@@ -187,8 +187,18 @@ namespace st10439147_PROG6221_POE_P3
 
             SaveUserName();
 
-            // Create and show MainWindow immediately
-            NavigateToMainWindow();
+            // Navigate to MainWindow
+            if (_isModal)
+            {
+                this.DialogResult = true; // Only safe if window was shown with ShowDialog()
+            }
+
+            //this.NavigateToMainWindow();
+
+            MainWindow mainWindow = new MainWindow(UserName);
+            mainWindow.Show();
+
+            this.Hide(); // Don't call Close() unless you need to release the window
         }
 
         private void NavigateToMainWindow()
@@ -226,7 +236,7 @@ namespace st10439147_PROG6221_POE_P3
                     mainWindow.Show();
 
                     // Close this window
-                    this.Close();
+                    this.Hide();
                 }
             }
             catch (Exception ex)

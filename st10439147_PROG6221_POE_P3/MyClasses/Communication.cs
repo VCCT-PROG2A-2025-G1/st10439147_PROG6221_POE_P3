@@ -95,6 +95,11 @@ namespace ST10439147_PROG6221_POE.MyClasses
             return new ValidationResult(true, string.Empty);
         }
 
+        public string GetActivityLog(int maxEntries, bool includeTimestamps)
+        {
+            return _activityLog.GetFormattedActivityLog(maxEntries, includeTimestamps);
+        }
+
         private void OnQuizStarted(object sender, EventArgs e)
         {
             OnBotResponse?.Invoke("🎯 The quiz has started! Get ready!");
@@ -313,7 +318,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
             // Handle activity log commands
             if (lowerInput == "show activity" || lowerInput == "activity log" || lowerInput == "What have you done for me?”")
             {
-                var response = _activityLog.GetConciseActivitySummary(5); // Updated method call
+                var response = _activityLog.GetConciseActivitySummary(10); // Updated method call
                 _activityLog.LogChatInteraction(LastUserInput, "User-friendly activity summary displayed", ChatResponseType.Regular, _currentUserName);
                 return new ChatResponse(ChatResponseType.Regular, response);
             }
@@ -430,7 +435,7 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 );
 
                 // Format the initial response like the example
-                string response = $"Task added with the description \"{taskInfo.Description}\" Would you like a reminder?";
+                string response = $"Task added with the description \"{taskInfo.Description}\" Reminder set for \"{taskInfo.DueDate}\"";
 
                 // Track in user memory
                 _userMemory.AddDiscussedTopic("task_management");
@@ -673,8 +678,9 @@ namespace ST10439147_PROG6221_POE.MyClasses
                     taskToUpdate = pendingTasks.First();
                 }
 
+                // Detect if the user is marking the task as completed
                 TaskStatus newStatus = TaskStatus.InProgress;
-                if (input.Contains("complete") || input.Contains("done") || input.Contains("finish"))
+                if (input.Contains("complete") || input.Contains("done") || input.Contains("finish") || input.Contains("completed"))
                 {
                     newStatus = TaskStatus.Completed;
                 }
@@ -688,6 +694,9 @@ namespace ST10439147_PROG6221_POE.MyClasses
                 string response = $"✅ Task updated successfully!\n" +
                                 $"📋 Task: {taskToUpdate.Title}\n" +
                                 $"🔄 Status: {newStatus}";
+
+                // Optionally, log the activity
+                _activityLog.LogTaskActivity(taskToUpdate, $"Status updated to {newStatus}", _currentUserName);
 
                 return new ChatResponse(ChatResponseType.Task, response);
             }

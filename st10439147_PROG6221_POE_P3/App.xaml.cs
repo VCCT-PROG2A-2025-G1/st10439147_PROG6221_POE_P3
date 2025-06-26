@@ -15,21 +15,15 @@ namespace st10439147_PROG6221_POE_P3
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            // Show welcome window first
-            if (WelcomePage.ShowWelcome())
-            {
-                // User clicked Enter - proceed to main app
-                NextPage NextPage = new NextPage();
-                NextPage.Show();
-            }
-            else
-            {
-                // User closed welcome window - exit app
-                Shutdown();
-            }
-
             base.OnStartup(e);
+
+            // Show welcome window first
+            bool navigated = WelcomePage.ShowWelcome();
+
+            if (!navigated)
+            {
+                Shutdown(); // User closed welcome window
+            }
         }
     }
-
 }

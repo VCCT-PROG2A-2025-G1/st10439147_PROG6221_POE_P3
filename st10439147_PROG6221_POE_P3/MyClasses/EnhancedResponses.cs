@@ -712,6 +712,19 @@ namespace ST10439147_PROG6221_POE_P3.MyClasses
         {
             var additionalInfo = new Dictionary<string, string>
             {
+                ["encryption"] = "Encryption is the process of converting information into a code to prevent unauthorized access. It's like locking your data with a secret key that only you and trusted parties have.",
+                ["backup"] = "Regular backups ensure you have copies of your important files in case of data loss, malware, or hardware failure. Use both cloud and external drives for best results.",
+                ["browser security"] = "Browser security involves keeping your web browser updated, using secure (HTTPS) sites, and avoiding suspicious extensions or downloads.",
+                ["spam"] = "Spam refers to unwanted or unsolicited messages, often sent in bulk. Be cautious with links or attachments in spam emails, as they may contain malware or phishing attempts.",
+                ["identity theft"] = "Identity theft happens when someone steals your personal information to commit fraud. Protect yourself by using strong passwords and monitoring your accounts for suspicious activity.",
+                ["social media security"] = "Social media security involves adjusting your privacy settings, being cautious about what you share, and recognizing phishing attempts that target your social accounts.",
+                ["social engineering"] = "Social engineering is when attackers trick people into giving up confidential information or access, often by pretending to be someone trustworthy. Always verify identities before sharing sensitive info.",
+                ["network security"] = "Network security involves protecting your Wi-Fi and devices from unauthorized access. Use strong passwords, enable WPA3 encryption, and keep your router firmware updated.",
+                ["pharming"] = "Pharming is a cyberattack that redirects you from a real website to a fake one to steal your information. Always check website URLs and use secure (HTTPS) connections.",
+                ["firewall"] = "A firewall acts as a barrier between your device and the internet, blocking unwanted traffic. Make sure your firewall is enabled and properly configured.",
+                ["antivirus"] = "Antivirus software scans your device for malicious programs and helps remove them. Keep your antivirus updated and run regular scans for best protection.",
+                ["vpn"] = "A VPN (Virtual Private Network) encrypts your internet connection, making it harder for others to track your online activity or steal your data, especially on public Wi-Fi.",
+                ["2fa"] = "Two-factor authentication (2FA) adds an extra step to logging in, like a code sent to your phone, making it much harder for attackers to access your accounts.",
                 ["password"] = "Pro tip: Consider using a passphrase with a mix of unrelated words - it's both secure and memorable!",
                 ["phishing"] = "Here's an insider trick: legitimate companies will never ask for passwords via email, even in 'urgent' situations.",
                 ["malware"] = "Advanced tip: Enable real-time protection in your antivirus and keep your browser updated for the best defense.",

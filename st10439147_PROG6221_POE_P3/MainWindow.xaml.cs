@@ -29,6 +29,7 @@ namespace st10439147_PROG6221_POE_P3
         private TaskManager _taskManager;
         private UserMemory _userMemory;
         private string _currentUserName;
+        private ActivityLog _activityLog;
 
         public MainWindow() : this(string.Empty)
         {
@@ -54,6 +55,11 @@ namespace st10439147_PROG6221_POE_P3
                 // Show personalized welcome message
                 AddChatBubble(_communication.GetWelcomeMessage(), false);
             }
+        }
+
+        public void SetUserMemory(UserMemory userMemory) // Added a setter method
+        {
+            _userMemory = userMemory;
         }
 
         private void InitializeCybersecurityTheme()
@@ -479,7 +485,19 @@ namespace st10439147_PROG6221_POE_P3
 
         private void ShowTaskStatistics(object sender, RoutedEventArgs e)
         {
-            // Add your logic for showing task statistics here
+            if (_communication != null)
+            {
+                try
+                {
+                    // Use a public method to access the activity log instead of directly accessing the private field
+                    var activityLog = _communication.GetActivityLog(10, false);
+                    AddChatBubble(activityLog, false);
+                }
+                catch (Exception ex)
+                {
+                    AddChatBubble($"Error retrieving activity log: {ex.Message}", false);
+                }
+            }
         }
 
         private void RefreshChat(object sender, RoutedEventArgs e)
