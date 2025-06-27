@@ -62,6 +62,9 @@ CyberGuard AI is a WPF-based chatbot application designed to help users learn ab
 - `NextPage.xaml` / `NextPage.xaml.cs` - Handles navigation after welcome.
 - `App.xaml` - Application entry point and resources.
 
+### Youtube Link of code explanation
+   https://youtu.be/9v0owElDcAY
+
 ### Credits
 
 Developed by: Dillon Rinkwest (st10439147)  
