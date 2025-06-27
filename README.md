@@ -15,7 +15,7 @@ CyberGuard AI is a WPF-based chatbot application designed to help users learn ab
 - **Animated UI:** Smooth entrance, button, and text animations for a modern user experience.
 - **Robust Error Handling:** Graceful handling of invalid input and application errors.
 
-### Getting Started
+## Getting Started
 
 ### Prerequisites
 
